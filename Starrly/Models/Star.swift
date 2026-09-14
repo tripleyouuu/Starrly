@@ -6,25 +6,37 @@ import SwiftData
 final class Star {
     var id: UUID
     var name: String
-    var color: StarColor
+    var colorValue: Int
     var createdAt: Date
     var firstSessionAt: Date?
-    var localPosition: CGPoint
-    var explorePosition: CGPoint?
+    var localPositionX: Double
+    var localPositionY: Double
 
     var constellation: Constellation?
 
     @Relationship(deleteRule: .cascade, inverse: \Session.star)
     var sessions: [Session] = []
 
-    init(name: String, color: StarColor, localPosition: CGPoint, explorePosition: CGPoint? = nil) {
+    init(name: String, color: StarColor, localPosition: CGPoint) {
         self.id = UUID()
         self.name = name
-        self.color = color
+        self.colorValue = color.rawValue
         self.createdAt = .now
         self.firstSessionAt = nil
-        self.localPosition = localPosition
-        self.explorePosition = explorePosition
+        self.localPositionX = localPosition.x
+        self.localPositionY = localPosition.y
+    }
+
+    var color: StarColor {
+        StarColor(rawValue: colorValue) ?? .lavender
+    }
+
+    var localPosition: CGPoint {
+        get { CGPoint(x: localPositionX, y: localPositionY) }
+        set {
+            localPositionX = newValue.x
+            localPositionY = newValue.y
+        }
     }
 
     var type: StarType {

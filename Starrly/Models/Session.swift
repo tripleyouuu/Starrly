@@ -14,7 +14,7 @@ final class Session {
     var title: String
     var body: String
     var mediaPaths: [String]
-    var shape: PlanetShape
+    var shapeValue: Int
     var createdAt: Date
 
     var star: Star?
@@ -24,7 +24,11 @@ final class Session {
         self.title = "New Session"
         self.body = ""
         self.mediaPaths = []
-        self.shape = PlanetShape.allCases.randomElement()!
+        self.shapeValue = PlanetShape.allCases.randomElement()!.rawValue
         self.createdAt = .now
+    }
+
+    var shape: PlanetShape {
+        PlanetShape(rawValue: shapeValue) ?? .one
     }
 }

@@ -1,7 +1,5 @@
 import SwiftUI
 
-import SwiftUI
-
 struct ContentView: View {
     @State private var appState = AppState()
 
@@ -20,10 +18,9 @@ struct ContentView: View {
             case .star(let id, let returnTo):
                 StarDetailView(starID: id, returnTo: returnTo)
             case .session(let id, let starReturnTo):
-                let _ = (id, starReturnTo)
-                EmptyView()
+                SessionView(sessionID: id, starReturnTo: starReturnTo)
             case .explore:
-                EmptyView()
+                ExploreView()
             }
         }
         .environment(appState)

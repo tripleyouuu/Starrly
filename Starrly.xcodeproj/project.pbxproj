@@ -10,9 +10,22 @@
 		DBA04B58305794970029735D /* Starrly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Starrly.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		DBA04D0D3057A2330029735D /* Exceptions for "Starrly" folder in "Copy Bundle Resources" phase from "Starrly" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = DBA04B56305794970029735D /* Resources */;
+			membershipExceptions = (
+				"Color+Palette.swift",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DBA04B5A305794970029735D /* Starrly */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DBA04D0D3057A2330029735D /* Exceptions for "Starrly" folder in "Copy Bundle Resources" phase from "Starrly" target */,
+			);
 			path = Starrly;
 			sourceTree = "<group>";
 		};

@@ -1,3 +1,11 @@
+//
+//  Color+Palette.swift
+//  Starrly
+//
+//  Created by Vitha Watson on 14/09/26.
+//
+
+
 import SwiftUI
 
 extension Color {

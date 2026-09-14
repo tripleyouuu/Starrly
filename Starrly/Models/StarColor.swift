@@ -17,11 +17,11 @@ enum StarColor: Int, Codable, CaseIterable {
 
     var color: Color {
         switch self {
-        case .lavender: Color(hex: 0xEBE7FE)
-        case .pink: Color(hex: 0xFEE7FE)
-        case .warmGray: Color(hex: 0xEBE7EB)
-        case .cream: Color(hex: 0xFEFAE7)
-        case .skyBlue: Color(hex: 0xE7F6FE)
+        case .lavender: return Color(hex: 0xEBE7FE)
+        case .pink: return Color(hex: 0xFEF7FE)
+        case .warmGray: return Color(hex: 0xEBEBEB)
+        case .cream: return Color(hex: 0xFEFAE7)
+        case .skyBlue: return Color(hex: 0xE7F6FE)
         }
     }
 }

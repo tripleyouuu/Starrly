@@ -21,4 +21,14 @@ enum StarType: CaseIterable {
         default: .neutronStar
         }
     }
+
+    var label: String {
+        switch self {
+        case .protoStar: "Proto Star"
+        case .dwarf: "Brown Dwarf"
+        case .giant: "Red Giant"
+        case .supernova: "Supernova"
+        case .neutronStar: "Neutron Star"
+        }
+    }
 }

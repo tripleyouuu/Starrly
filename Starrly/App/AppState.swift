@@ -8,12 +8,12 @@
 import Foundation
 import Observation
 
-enum Route: Hashable {
+indirect enum Route: Hashable {
     case home
     case discovery
-    case constellation(UUID)
-    case star(UUID)
-    case session(UUID)
+    case constellation(UUID, returnTo: Route)
+    case star(UUID, returnTo: Route)
+    case session(UUID, starReturnTo: Route)
     case explore
 }
 

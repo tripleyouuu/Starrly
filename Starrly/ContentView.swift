@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Starrly
-//
-//  Created by Vitha Watson on 14/09/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
@@ -12,22 +5,22 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            Color(Color.starrlyBackground)
+            Color.starrlyBackground
                 .ignoresSafeArea()
 
             switch appState.route {
             case .home:
-                EmptyView()
+                HomeView()
             case .discovery:
-                EmptyView()
-            case .constellation:
-                EmptyView()
-            case .star:
-                EmptyView()
-            case .session:
-                EmptyView()
+                DiscoveryFlowView()
+            case .constellation(let id, let returnTo):
+                ConstellationView(constellationID: id, returnTo: returnTo)
+            case .star(let id, let returnTo):
+                StarDetailView(starID: id, returnTo: returnTo)
+            case .session(let id, let starReturnTo):
+                SessionView(sessionID: id, starReturnTo: starReturnTo)
             case .explore:
-                EmptyView()
+                ExploreView()
             }
         }
         .environment(appState)

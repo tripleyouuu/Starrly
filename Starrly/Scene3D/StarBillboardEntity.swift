@@ -14,10 +14,8 @@ enum StarBillboardEntity {
         let root = Entity()
         root.name = "star:\(star.id.uuidString)"
         root.components.set(BillboardComponent())
-        root.components.set(InputTargetComponent())
 
         let size = Float(20 * sizeScale)
-        root.components.set(CollisionComponent(shapes: [.generateBox(size: [size, size, 0.1])]))
 
         for (index, layerName) in StarAsset.layers(for: star.type).enumerated() {
             let mesh = MeshResource.generatePlane(width: size, height: size)

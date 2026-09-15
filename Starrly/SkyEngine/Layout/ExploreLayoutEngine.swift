@@ -6,38 +6,68 @@
 //
 
 import Foundation
+import CoreGraphics
 
 enum ExploreLayoutEngine {
-    
+
     static let minPitch: Double = 20
     static let maxPitch: Double = 40
+    static let minSpreadScale: Double = 0.05
+    static let maxSpreadScale: Double = 1.2
+    private static let yawGapDegrees: Double = 16
 
-    static func layout(for constellations: [Constellation]) -> [UUID: SkyPosition] {
+    struct Placement {
+        let position: SkyPosition
+        let spreadScale: Double
+        let localOrigin: CGPoint
+    }
+
+    static func layout(for constellations: [Constellation]) -> [UUID: Placement] {
         let ordered = constellations.sorted { $0.createdAt < $1.createdAt }
-        let count = ordered.count
-        guard count > 0 else { return [:] }
+        guard !ordered.isEmpty else { return [:] }
 
-        let rows = max(1, min(5, Int(Double(count).squareRoot().rounded())))
-        let rowSpacing = rows > 1 ? (maxPitch - minPitch) / Double(rows - 1) : 0
+        let midPitch = (minPitch + maxPitch) / 2
+        let verticalSpan = maxPitch - minPitch
 
-        var rowBuckets: [[Int]] = Array(repeating: [], count: rows)
-        for index in 0..<count {
-            rowBuckets[index % rows].append(index)
+        struct Metric {
+            let id: UUID
+            let spreadScale: Double
+            let angularWidth: Double
+            let localOrigin: CGPoint
         }
 
-        var positions: [UUID: SkyPosition] = [:]
-        for (row, indices) in rowBuckets.enumerated() {
-            guard !indices.isEmpty else { continue }
-            let pitch = minPitch + rowSpacing * Double(row)
-            let yawStep = 360.0 / Double(indices.count)
-            let rowStagger = (360.0 / Double(rows)) * Double(row) / 2
-
-            for (slot, index) in indices.enumerated() {
-                let yaw = (yawStep * Double(slot) + rowStagger).truncatingRemainder(dividingBy: 360)
-                positions[ordered[index].id] = SkyPosition(yaw: yaw, pitch: pitch)
+        let metrics: [Metric] = ordered.map { constellation in
+            let points = constellation.stars.map(\.localPosition)
+            guard points.count > 1,
+                  let minY = points.map(\.y).min(), let maxY = points.map(\.y).max(),
+                  let minX = points.map(\.x).min(), let maxX = points.map(\.x).max() else {
+                return Metric(id: constellation.id, spreadScale: maxSpreadScale, angularWidth: 6, localOrigin: points.first ?? .zero)
             }
+            let yRange = max(maxY - minY, 1)
+            let xRange = max(maxX - minX, 1)
+            let scale = min(maxSpreadScale, max(minSpreadScale, verticalSpan / yRange))
+            let origin = CGPoint(x: (minX + maxX) / 2, y: (minY + maxY) / 2)
+            return Metric(id: constellation.id, spreadScale: scale, angularWidth: xRange * scale, localOrigin: origin)
         }
-        return positions
+
+        let totalWidth = metrics.reduce(0.0) { $0 + $1.angularWidth } + yawGapDegrees * Double(metrics.count)
+        let shrink = totalWidth > 360 ? 360 / totalWidth : 1
+        let extraPerGap = totalWidth < 360 ? (360 - totalWidth) / Double(metrics.count) : 0
+
+        var placements: [UUID: Placement] = [:]
+        var yawCursor: Double = 0
+        for metric in metrics {
+            let width = metric.angularWidth * shrink
+            let gap = (yawGapDegrees + extraPerGap) * shrink
+            let yaw = (yawCursor + width / 2).truncatingRemainder(dividingBy: 360)
+            placements[metric.id] = Placement(
+                position: SkyPosition(yaw: yaw, pitch: midPitch),
+                spreadScale: metric.spreadScale * shrink,
+                localOrigin: metric.localOrigin
+            )
+            yawCursor += width + gap
+        }
+        return placements
     }
 
     static func densityScale(for constellationCount: Int) -> Double {

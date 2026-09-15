@@ -17,6 +17,7 @@ struct SessionContentView: View {
 
     @Query private var allConstellations: [Constellation]
     @State private var photosPickerItems: [PhotosPickerItem] = []
+    @State private var pendingMediaCount = 0
 
     var body: some View {
         ZStack {
@@ -58,6 +59,17 @@ struct SessionContentView: View {
                     .foregroundStyle(Color.starrlyOffWhite)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
+                if pendingMediaCount > 0 {
+                    HStack(spacing: 10) {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text(pendingMediaCount == 1 ? "Adding media…" : "Adding \(pendingMediaCount) items…")
+                            .font(.system(size: 15))
+                            .foregroundStyle(Color.starrlyOffWhite)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
                 if !session.mediaPaths.isEmpty {
                     MediaCarousel(filenames: session.mediaPaths) { filename in
                         session.mediaPaths.removeAll { $0 == filename }
@@ -87,22 +99,35 @@ struct SessionContentView: View {
 
     private func handleProviders(_ providers: [NSItemProvider]) {
         for provider in providers {
+            pendingMediaCount += 1
+
             if provider.canLoadObject(ofClass: URL.self) {
                 _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                    guard let url, let data = try? Data(contentsOf: url) else { return }
-                    let fileExtension = url.pathExtension.isEmpty ? "dat" : url.pathExtension
-                    Task { @MainActor in addMedia(data: data, fileExtension: fileExtension) }
+                    Task { @MainActor in
+                        defer { pendingMediaCount -= 1 }
+                        guard let url, let data = try? Data(contentsOf: url) else { return }
+                        let fileExtension = url.pathExtension.isEmpty ? "dat" : url.pathExtension
+                        addMedia(data: data, fileExtension: fileExtension)
+                    }
                 }
             } else if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
                 provider.loadDataRepresentation(forTypeIdentifier: UTType.movie.identifier) { data, _ in
-                    guard let data else { return }
-                    Task { @MainActor in addMedia(data: data, fileExtension: "mov") }
+                    Task { @MainActor in
+                        defer { pendingMediaCount -= 1 }
+                        guard let data else { return }
+                        addMedia(data: data, fileExtension: "mov")
+                    }
                 }
             } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
                 provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { data, _ in
-                    guard let data else { return }
-                    Task { @MainActor in addMedia(data: data, fileExtension: "png") }
+                    Task { @MainActor in
+                        defer { pendingMediaCount -= 1 }
+                        guard let data else { return }
+                        addMedia(data: data, fileExtension: "png")
+                    }
                 }
+            } else {
+                pendingMediaCount -= 1
             }
         }
     }
@@ -116,6 +141,7 @@ struct SessionContentView: View {
     private func handlePick(_ items: [PhotosPickerItem]) {
         guard !items.isEmpty else { return }
         photosPickerItems = []
+        pendingMediaCount += items.count
         Task {
             let filenames = await withTaskGroup(of: (Int, String?).self) { group in
                 for (index, item) in items.enumerated() {
@@ -136,6 +162,7 @@ struct SessionContentView: View {
                 return results.sorted { $0.0 < $1.0 }.map(\.1)
             }
             session.mediaPaths.append(contentsOf: filenames)
+            pendingMediaCount -= items.count
         }
     }
 }

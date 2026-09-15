@@ -35,7 +35,7 @@ struct MemberPlanetsList: View {
                                     Image(session.shape.assetName)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
-                                        .frame(width: 44, height: 44)
+                                        .frame(width: 64, height: 64)
 
                                     Text(session.displayTitle)
                                         .font(.system(size: 21, weight: .semibold))
@@ -53,6 +53,7 @@ struct MemberPlanetsList: View {
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(.trailing, 16)
                 .frame(maxWidth: .infinity, alignment: .center)
             }
             .frame(maxHeight: .infinity)

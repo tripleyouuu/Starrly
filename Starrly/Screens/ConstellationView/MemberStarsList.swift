@@ -33,7 +33,7 @@ struct MemberStarsList: View {
                             HStack(spacing: 108) {
                                 HStack(spacing: 16) {
                                     StarView(type: star.type, color: star.color)
-                                        .frame(width: 44, height: 44)
+                                        .frame(width: 32, height: 32)
 
                                     VStack(alignment: .leading, spacing: 6) {
                                         Text(star.name)
@@ -57,6 +57,7 @@ struct MemberStarsList: View {
                         .buttonStyle(.plain)
                     }
                 }
+                .padding(.trailing, 16)
                 .frame(maxWidth: .infinity, alignment: .center)
             }
             .frame(maxHeight: .infinity)

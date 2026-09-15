@@ -16,7 +16,7 @@ struct DiscoveryFlowView: View {
 
     var body: some View {
         ZStack {
-            AmbientSkyView(constellations: allConstellations)
+            AmbientSkyView(constellations: allConstellations, autoPan: true)
                 .ignoresSafeArea()
 
             if let constellationName {
@@ -39,8 +39,6 @@ struct DiscoveryFlowView: View {
 
     private func createConstellation(name: String, firstStarName: String) {
         let constellation = Constellation(name: name)
-        let existingPositions = allConstellations.compactMap(\.explorePosition)
-        constellation.explorePosition = ExploreLayoutEngine.placeNewConstellation(among: existingPositions)
 
         let color = StarColor.allCases.randomElement() ?? .lavender
         let position = ConstellationLayoutEngine.placeNewStar(among: [])

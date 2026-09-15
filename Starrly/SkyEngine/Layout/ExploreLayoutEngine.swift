@@ -8,30 +8,39 @@
 import Foundation
 
 enum ExploreLayoutEngine {
-    static let minSeparation: Double = 25
-    static let pitchRange: ClosedRange<Double> = 10...70
+    
+    static let minPitch: Double = 20
+    static let maxPitch: Double = 40
 
-    static func placeNewConstellation(among existing: [SkyPosition]) -> SkyPosition {
-        for _ in 0..<300 {
-            let candidate = SkyPosition(
-                yaw: Double.random(in: 0..<360),
-                pitch: Double.random(in: pitchRange)
-            )
-            if isFarEnough(candidate, from: existing) {
-                return candidate
+    static func layout(for constellations: [Constellation]) -> [UUID: SkyPosition] {
+        let ordered = constellations.sorted { $0.createdAt < $1.createdAt }
+        let count = ordered.count
+        guard count > 0 else { return [:] }
+
+        let rows = max(1, min(5, Int(Double(count).squareRoot().rounded())))
+        let rowSpacing = rows > 1 ? (maxPitch - minPitch) / Double(rows - 1) : 0
+
+        var rowBuckets: [[Int]] = Array(repeating: [], count: rows)
+        for index in 0..<count {
+            rowBuckets[index % rows].append(index)
+        }
+
+        var positions: [UUID: SkyPosition] = [:]
+        for (row, indices) in rowBuckets.enumerated() {
+            guard !indices.isEmpty else { continue }
+            let pitch = minPitch + rowSpacing * Double(row)
+            let yawStep = 360.0 / Double(indices.count)
+            let rowStagger = (360.0 / Double(rows)) * Double(row) / 2
+
+            for (slot, index) in indices.enumerated() {
+                let yaw = (yawStep * Double(slot) + rowStagger).truncatingRemainder(dividingBy: 360)
+                positions[ordered[index].id] = SkyPosition(yaw: yaw, pitch: pitch)
             }
         }
-        return SkyPosition(yaw: Double.random(in: 0..<360), pitch: Double.random(in: pitchRange))
+        return positions
     }
 
-    private static func isFarEnough(_ candidate: SkyPosition, from existing: [SkyPosition]) -> Bool {
-        existing.allSatisfy { angularDistance($0, candidate) >= minSeparation }
-    }
-
-    private static func angularDistance(_ a: SkyPosition, _ b: SkyPosition) -> Double {
-        let yawDelta = abs(a.yaw - b.yaw).truncatingRemainder(dividingBy: 360)
-        let wrappedYawDelta = min(yawDelta, 360 - yawDelta)
-        let pitchDelta = abs(a.pitch - b.pitch)
-        return sqrt(wrappedYawDelta * wrappedYawDelta + pitchDelta * pitchDelta)
+    static func densityScale(for constellationCount: Int) -> Double {
+        max(0.4, 1.0 / Double(max(constellationCount, 1)).squareRoot())
     }
 }

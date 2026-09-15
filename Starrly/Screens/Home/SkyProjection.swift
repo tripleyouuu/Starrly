@@ -19,11 +19,11 @@ enum SkyProjection {
         return SIMD3<Float>(Float(x), Float(y), Float(z))
     }
 
-    static func starWorldPosition(star: Star, constellationCentroid: SkyPosition, radius: Double) -> SIMD3<Float> {
-        let scale = 0.05
+    static func starWorldPosition(star: Star, constellationCentroid: SkyPosition, radius: Double, spreadScale: Double = 0.05) -> SIMD3<Float> {
+        let pitch = constellationCentroid.pitch + star.localPosition.y * spreadScale
         let position = SkyPosition(
-            yaw: constellationCentroid.yaw + star.localPosition.x * scale,
-            pitch: constellationCentroid.pitch + star.localPosition.y * scale
+            yaw: constellationCentroid.yaw + star.localPosition.x * spreadScale,
+            pitch: min(max(pitch, ExploreLayoutEngine.minPitch), ExploreLayoutEngine.maxPitch)
         )
         return worldPosition(for: position, radius: radius)
     }

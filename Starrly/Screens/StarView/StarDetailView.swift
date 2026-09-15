@@ -30,7 +30,7 @@ struct StarDetailView: View {
 
     var body: some View {
         ZStack {
-            AmbientSkyView(constellations: allConstellations, isBlurred: true)
+            AmbientSkyView(constellations: allConstellations, isBlurred: true, autoPan: true)
                 .ignoresSafeArea()
 
             VStack(spacing: 40) {

@@ -40,13 +40,14 @@ struct HomeView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            AmbientSkyView(constellations: constellations)
+            AmbientSkyView(constellations: constellations, autoPan: true)
                 .ignoresSafeArea()
 
             TelescopeView {
                 appState.route = .discovery
             }
-            .padding(40)
+            .frame(maxWidth: 640)
+//            .padding(40)
 
             HStack(alignment: .top, spacing: 40) {
                 VStack(alignment: .leading, spacing: 20) {

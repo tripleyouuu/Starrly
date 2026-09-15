@@ -14,10 +14,11 @@ final class SkyCameraRig {
     let cameraEntity = PerspectiveCamera()
 
     private(set) var yaw: Double = 0
-    private(set) var pitch: Double = 30
+    private(set) var pitch: Double = SkyCameraRig.defaultPitch
 
     static let minPitch: Double = 0
-    static let maxPitch: Double = 85
+    static let maxPitch: Double = 55
+    static let defaultPitch: Double = 35
 
     init() {
         cameraEntity.components.set(PerspectiveCameraComponent(near: 0.1, far: 2000, fieldOfViewInDegrees: 60))
@@ -31,6 +32,11 @@ final class SkyCameraRig {
         updateOrientation()
     }
 
+    func setYaw(_ newYaw: Double) {
+        yaw = newYaw
+        updateOrientation()
+    }
+
     func pan(deltaYaw: Double, deltaPitch: Double) {
         yaw += deltaYaw
         pitch = min(max(pitch + deltaPitch, Self.minPitch), Self.maxPitch)
@@ -39,7 +45,7 @@ final class SkyCameraRig {
 
     private func updateOrientation() {
         let yawRotation = simd_quatf(angle: Float(yaw * .pi / 180), axis: [0, 1, 0])
-        let pitchRotation = simd_quatf(angle: Float(-pitch * .pi / 180), axis: [1, 0, 0])
+        let pitchRotation = simd_quatf(angle: Float(pitch * .pi / 180), axis: [1, 0, 0])
         rigEntity.orientation = yawRotation * pitchRotation
     }
 }

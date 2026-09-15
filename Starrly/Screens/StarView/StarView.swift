@@ -19,6 +19,7 @@ struct StarView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .colorMultiply(color.color)
+                    .scaleEffect(StarAsset.relativeScale(for: layer))
             }
         }
     }

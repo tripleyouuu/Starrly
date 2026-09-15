@@ -98,6 +98,9 @@ struct StarDetailView: View {
         star.sessions.append(session)
         if star.firstSessionAt == nil {
             star.firstSessionAt = session.createdAt
+            if let constellation = star.constellation {
+                ConstellationLayoutEngine.resolveIntersections(for: constellation)
+            }
         }
         modelContext.insert(session)
         appState.route = .session(session.id, starReturnTo: .star(starID, returnTo: returnTo))

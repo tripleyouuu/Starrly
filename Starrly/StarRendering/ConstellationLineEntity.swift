@@ -15,7 +15,7 @@ enum ConstellationLineEntity {
         let delta = end - start
         let distance = simd_length(delta)
 
-        let mesh = MeshResource.generateCylinder(height: distance, radius: 3.0)
+        let mesh = MeshResource.generateCylinder(height: distance, radius: 0.5)
         var material = UnlitMaterial()
         material.color = .init(tint: .white)
         let entity = ModelEntity(mesh: mesh, materials: [material])

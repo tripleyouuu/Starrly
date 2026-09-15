@@ -7,6 +7,7 @@
 
 
 import Foundation
+import CoreGraphics
 import simd
 
 enum SkyProjection {
@@ -19,10 +20,18 @@ enum SkyProjection {
         return SIMD3<Float>(Float(x), Float(y), Float(z))
     }
 
-    static func starWorldPosition(star: Star, constellationCentroid: SkyPosition, radius: Double, spreadScale: Double = 0.05) -> SIMD3<Float> {
-        let pitch = constellationCentroid.pitch + star.localPosition.y * spreadScale
+    static func starWorldPosition(
+        star: Star,
+        constellationCentroid: SkyPosition,
+        localOrigin: CGPoint = .zero,
+        radius: Double,
+        spreadScale: Double = 0.05
+    ) -> SIMD3<Float> {
+        let localX = star.localPosition.x - localOrigin.x
+        let localY = star.localPosition.y - localOrigin.y
+        let pitch = constellationCentroid.pitch + localY * spreadScale
         let position = SkyPosition(
-            yaw: constellationCentroid.yaw + star.localPosition.x * spreadScale,
+            yaw: constellationCentroid.yaw + localX * spreadScale,
             pitch: min(max(pitch, ExploreLayoutEngine.minPitch), ExploreLayoutEngine.maxPitch)
         )
         return worldPosition(for: position, radius: radius)

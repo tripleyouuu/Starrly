@@ -20,6 +20,11 @@ final class SkyCameraRig {
     static let maxPitch: Double = 55
     static let defaultPitch: Double = 35
 
+    private var animationStart: (yaw: Double, pitch: Double)?
+    private var animationTarget: (yaw: Double, pitch: Double)?
+    private var animationStartedAt: Date?
+    private let animationDuration: TimeInterval = 0.4
+
     init() {
         cameraEntity.components.set(PerspectiveCameraComponent(near: 0.1, far: 2000, fieldOfViewInDegrees: 60))
         rigEntity.addChild(cameraEntity)
@@ -38,9 +43,41 @@ final class SkyCameraRig {
     }
 
     func pan(deltaYaw: Double, deltaPitch: Double) {
+        cancelAnimation()
         yaw += deltaYaw
         pitch = min(max(pitch + deltaPitch, Self.minPitch), Self.maxPitch)
         updateOrientation()
+    }
+
+    func startAnimating(toYaw targetYaw: Double, pitch targetPitch: Double) {
+        let clampedTargetPitch = min(max(targetPitch, Self.minPitch), Self.maxPitch)
+        let rawDelta = (targetYaw - yaw).truncatingRemainder(dividingBy: 360)
+        let shortestDelta = rawDelta > 180 ? rawDelta - 360 : (rawDelta < -180 ? rawDelta + 360 : rawDelta)
+
+        animationStart = (yaw, pitch)
+        animationTarget = (yaw + shortestDelta, clampedTargetPitch)
+        animationStartedAt = Date()
+    }
+
+    func cancelAnimation() {
+        animationStart = nil
+        animationTarget = nil
+        animationStartedAt = nil
+    }
+
+    func tick(at now: Date) {
+        guard let start = animationStart, let target = animationTarget, let startedAt = animationStartedAt else { return }
+        let elapsed = now.timeIntervalSince(startedAt)
+        let t = min(1, max(0, elapsed / animationDuration))
+        let eased = 1 - pow(1 - t, 3)
+
+        yaw = start.yaw + (target.yaw - start.yaw) * eased
+        pitch = start.pitch + (target.pitch - start.pitch) * eased
+        updateOrientation()
+
+        if t >= 1 {
+            cancelAnimation()
+        }
     }
 
     private func updateOrientation() {

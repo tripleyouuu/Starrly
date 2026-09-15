@@ -14,23 +14,12 @@ struct ExploreView: View {
     @Query private var constellations: [Constellation]
 
     @State private var cameraRig = SkyCameraRig()
-    @State private var interactionState: ExploreInteractionState = .idle
     @State private var lastDragTranslation: CGSize = .zero
     @State private var sceneResetToken = UUID()
+    @State private var centeredConstellationID: UUID?
 
-    private var labelText: String? {
-        switch interactionState {
-        case .idle:
-            return nil
-        case .constellationName(let id):
-            return constellations.first { $0.id == id }?.name
-        case .starName(let starID, let constellationID):
-            return constellations
-                .first { $0.id == constellationID }?
-                .stars.first { $0.id == starID }?
-                .name
-        }
-    }
+    private static let sphereRadius: Double = 490
+    private static let verticalFOV: Double = 60
 
     var body: some View {
         ZStack {
@@ -40,7 +29,7 @@ struct ExploreView: View {
                 content.add(cameraRig.rigEntity)
                 content.add(await SkySphereEntity.make())
 
-                await ConstellationSceneBuilder.populate(content: content, constellations: constellations, includeHitVolumes: true)
+                await ConstellationSceneBuilder.populate(content: content, constellations: constellations, includeHitVolumes: false)
             }
             .gesture(
                 DragGesture()
@@ -48,24 +37,31 @@ struct ExploreView: View {
                         let deltaX = value.translation.width - lastDragTranslation.width
                         let deltaY = value.translation.height - lastDragTranslation.height
                         lastDragTranslation = value.translation
+                        centeredConstellationID = nil
                         cameraRig.pan(deltaYaw: -deltaX * 0.2, deltaPitch: deltaY * 0.2)
                     }
                     .onEnded { _ in
                         lastDragTranslation = .zero
                     }
             )
-            .gesture(
-                SpatialTapGesture()
-                    .targetedToAnyEntity()
-                    .onEnded { value in
-                        handleTap(entity: value.entity)
-                    }
-            )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .id(sceneResetToken)
 
+            GeometryReader { geometry in
+                TimelineView(.animation) { timeline in
+                    let _ = cameraRig.tick(at: timeline.date)
+                    let placements = ExploreLayoutEngine.layout(for: constellations)
+
+                    ForEach(constellations) { constellation in
+                        if let placement = placements[constellation.id],
+                           let screenPoint = capsulePoint(for: constellation, placement: placement, viewportSize: geometry.size) {
+                            constellationCapsule(constellation: constellation, placement: placement, screenPoint: screenPoint)
+                        }
+                    }
+                }
+            }
+
             ExploreOverlayUI(
-                labelText: labelText,
                 onBack: { appState.route = .home },
                 onDiscover: { appState.route = .discovery },
                 onResetLayout: resetLayout
@@ -73,39 +69,83 @@ struct ExploreView: View {
         }
     }
 
+    private func constellationCapsule(
+        constellation: Constellation,
+        placement: ExploreLayoutEngine.Placement,
+        screenPoint: CGPoint
+    ) -> some View {
+        HStack(spacing: 6) {
+            Text(constellation.name)
+                .lineLimit(1)
+                .frame(maxWidth: 140, alignment: .leading)
+
+            Image(systemName: "chevron.right")
+        }
+        .font(.system(size: 13, weight: .regular))
+        .foregroundStyle(Color.starrlyOffWhite)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .fixedSize()
+        .glassEffect(.clear.interactive(), in: .capsule)
+        .position(screenPoint)
+        .onTapGesture {
+            handleCapsuleTap(constellation, placement: placement)
+        }
+    }
+
+    private func handleCapsuleTap(_ constellation: Constellation, placement: ExploreLayoutEngine.Placement) {
+        if centeredConstellationID == constellation.id {
+            appState.route = .constellation(constellation.id, returnTo: .explore)
+            return
+        }
+        // SkyProjection places world objects using the opposite yaw sign convention
+        // from how SkyCameraRig actually orients the camera — negate to compensate.
+        cameraRig.startAnimating(toYaw: -placement.position.yaw, pitch: placement.position.pitch)
+        centeredConstellationID = constellation.id
+    }
+
+    private func capsulePoint(
+        for constellation: Constellation,
+        placement: ExploreLayoutEngine.Placement,
+        viewportSize: CGSize
+    ) -> CGPoint? {
+        let starWorldPositions = constellation.stars.map {
+            SkyProjection.starWorldPosition(
+                star: $0,
+                constellationCentroid: placement.position,
+                localOrigin: placement.localOrigin,
+                radius: Self.sphereRadius,
+                spreadScale: placement.spreadScale
+            )
+        }
+        guard !starWorldPositions.isEmpty else { return nil }
+
+        let aspect = Double(viewportSize.width / max(viewportSize.height, 1))
+        let visibleCount = starWorldPositions.filter {
+            ScreenProjector.isWithinFrustum(
+                worldPosition: $0,
+                cameraYaw: cameraRig.yaw,
+                cameraPitch: cameraRig.pitch,
+                verticalFOVDegrees: Self.verticalFOV,
+                aspect: aspect
+            )
+        }.count
+        guard Double(visibleCount) / Double(starWorldPositions.count) > 0.5 else { return nil }
+
+        let centroidWorld = SkyProjection.worldPosition(for: placement.position, radius: Self.sphereRadius)
+        let projected = ScreenProjector.project(
+            worldPosition: centroidWorld,
+            cameraYaw: cameraRig.yaw,
+            cameraPitch: cameraRig.pitch,
+            verticalFOVDegrees: Self.verticalFOV,
+            viewportSize: viewportSize
+        )
+        return projected.isInFrontOfCamera ? projected.point : nil
+    }
+
     private func resetLayout() {
         cameraRig = SkyCameraRig()
         sceneResetToken = UUID()
-    }
-
-    private func handleTap(entity: Entity) {
-        let target = resolveTarget(from: entity)
-        let (newState, action) = ExploreInteractionStateMachine.handleTap(target, state: interactionState)
-        interactionState = newState
-
-        switch action {
-        case .navigateToConstellation(let id):
-            appState.route = .constellation(id, returnTo: .explore)
-        case .navigateToStar(let id):
-            appState.route = .star(id, returnTo: .explore)
-        case .none:
-            break
-        }
-    }
-
-    private func resolveTarget(from entity: Entity) -> TapTarget? {
-        var current: Entity? = entity
-        while let e = current {
-            if e.name.hasPrefix("star:"), let uuid = UUID(uuidString: String(e.name.dropFirst(5))) {
-                if let constellation = constellations.first(where: { c in c.stars.contains { $0.id == uuid } }) {
-                    return .star(uuid, constellationID: constellation.id)
-                }
-            }
-            if e.name.hasPrefix("constellation:"), let uuid = UUID(uuidString: String(e.name.dropFirst(14))) {
-                return .constellation(uuid)
-            }
-            current = e.parent
-        }
-        return nil
+        centeredConstellationID = nil
     }
 }

@@ -46,7 +46,7 @@ struct ConstellationView: View {
                 .frame(maxHeight: .infinity, alignment: .top)
 
                 HStack(alignment: .top, spacing: 40) {
-                    ConstellationMapView(stars: constellation?.stars ?? [])
+                    ConstellationMapView(stars: constellation?.stars ?? [], onSelect: selectStar)
                         .frame(maxWidth: 640, maxHeight: 720)
                         .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
 

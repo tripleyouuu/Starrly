@@ -12,14 +12,14 @@ import SwiftUI
 enum ConstellationSceneBuilder {
     static func populate(content: some RealityViewContentProtocol, constellations: [Constellation], includeHitVolumes: Bool) async {
         let scale = ExploreLayoutEngine.densityScale(for: constellations.count)
-        let positions = ExploreLayoutEngine.layout(for: constellations)
+        let placements = ExploreLayoutEngine.layout(for: constellations)
 
         for constellation in constellations {
-            guard let position = positions[constellation.id] else { continue }
-            constellation.explorePosition = position
+            guard let placement = placements[constellation.id] else { continue }
+            constellation.explorePosition = placement.position
 
             if includeHitVolumes {
-                content.add(makeConstellationHitVolume(constellation: constellation, at: position, scale: scale))
+                content.add(makeConstellationHitVolume(constellation: constellation, at: placement.position, scale: scale))
             }
 
             var starPositions: [UUID: SIMD3<Float>] = [:]
@@ -27,9 +27,10 @@ enum ConstellationSceneBuilder {
             for star in constellation.stars {
                 let worldPosition = SkyProjection.starWorldPosition(
                     star: star,
-                    constellationCentroid: position,
+                    constellationCentroid: placement.position,
+                    localOrigin: placement.localOrigin,
                     radius: 490,
-                    spreadScale: 0.7 * scale
+                    spreadScale: placement.spreadScale
                 )
                 starPositions[star.id] = worldPosition
 

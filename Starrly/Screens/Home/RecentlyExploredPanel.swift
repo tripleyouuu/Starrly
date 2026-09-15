@@ -47,6 +47,7 @@ struct RecentlyExploredPanel: View {
                             .foregroundStyle(Color.starrlyOffWhite)
                     }
                 }
+                .padding(.horizontal,16)
                 .buttonStyle(.plain)
             }
 

@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ExploreOverlayUI: View {
-    let labelText: String?
     let onBack: () -> Void
     let onDiscover: () -> Void
     let onResetLayout: () -> Void
@@ -35,18 +34,6 @@ struct ExploreOverlayUI: View {
                 .buttonStyle(.plain)
                 .padding(10)
                 .glassEffect(.starrly.interactive(), in: .circle)
-            }
-
-            Spacer()
-
-            if let labelText {
-                Text(labelText)
-                    .foregroundStyle(Color.starrlyOffWhite)
-                    .lineLimit(1)
-                    .frame(maxWidth: 400, alignment: .center)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .glassEffect(.starrly, in: .capsule)
             }
 
             Spacer()

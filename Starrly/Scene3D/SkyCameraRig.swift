@@ -15,18 +15,23 @@ final class SkyCameraRig {
 
     private(set) var yaw: Double = 0
     private(set) var pitch: Double = SkyCameraRig.defaultPitch
+    private(set) var fieldOfView: Double = SkyCameraRig.defaultFieldOfView
 
     static let minPitch: Double = 0
     static let maxPitch: Double = 55
     static let defaultPitch: Double = 35
+    static let defaultFieldOfView: Double = 60
+    static let zoomedFieldOfView: Double = 35
 
-    private var animationStart: (yaw: Double, pitch: Double)?
-    private var animationTarget: (yaw: Double, pitch: Double)?
+    var isAnimating: Bool { animationTarget != nil }
+
+    private var animationStart: (yaw: Double, pitch: Double, fieldOfView: Double)?
+    private var animationTarget: (yaw: Double, pitch: Double, fieldOfView: Double)?
     private var animationStartedAt: Date?
     private let animationDuration: TimeInterval = 0.4
 
     init() {
-        cameraEntity.components.set(PerspectiveCameraComponent(near: 0.1, far: 2000, fieldOfViewInDegrees: 60))
+        cameraEntity.components.set(PerspectiveCameraComponent(near: 0.1, far: 2000, fieldOfViewInDegrees: Float(fieldOfView)))
         rigEntity.addChild(cameraEntity)
         updateOrientation()
     }
@@ -49,13 +54,24 @@ final class SkyCameraRig {
         updateOrientation()
     }
 
-    func startAnimating(toYaw targetYaw: Double, pitch targetPitch: Double) {
+    /// Advances yaw by a small step without disturbing any in-flight animation state, for continuous auto-pan.
+    func autoPanStep(deltaYaw: Double) {
+        yaw += deltaYaw
+        updateOrientation()
+    }
+
+    func setFieldOfView(_ degrees: Double) {
+        fieldOfView = degrees
+        applyFieldOfView()
+    }
+
+    func startAnimating(toYaw targetYaw: Double, pitch targetPitch: Double, fieldOfView targetFieldOfView: Double? = nil) {
         let clampedTargetPitch = min(max(targetPitch, Self.minPitch), Self.maxPitch)
         let rawDelta = (targetYaw - yaw).truncatingRemainder(dividingBy: 360)
         let shortestDelta = rawDelta > 180 ? rawDelta - 360 : (rawDelta < -180 ? rawDelta + 360 : rawDelta)
 
-        animationStart = (yaw, pitch)
-        animationTarget = (yaw + shortestDelta, clampedTargetPitch)
+        animationStart = (yaw, pitch, fieldOfView)
+        animationTarget = (yaw + shortestDelta, clampedTargetPitch, targetFieldOfView ?? fieldOfView)
         animationStartedAt = Date()
     }
 
@@ -73,7 +89,9 @@ final class SkyCameraRig {
 
         yaw = start.yaw + (target.yaw - start.yaw) * eased
         pitch = start.pitch + (target.pitch - start.pitch) * eased
+        fieldOfView = start.fieldOfView + (target.fieldOfView - start.fieldOfView) * eased
         updateOrientation()
+        applyFieldOfView()
 
         if t >= 1 {
             cancelAnimation()
@@ -84,5 +102,9 @@ final class SkyCameraRig {
         let yawRotation = simd_quatf(angle: Float(yaw * .pi / 180), axis: [0, 1, 0])
         let pitchRotation = simd_quatf(angle: Float(pitch * .pi / 180), axis: [1, 0, 0])
         rigEntity.orientation = yawRotation * pitchRotation
+    }
+
+    private func applyFieldOfView() {
+        cameraEntity.components.set(PerspectiveCameraComponent(near: 0.1, far: 2000, fieldOfViewInDegrees: Float(fieldOfView)))
     }
 }

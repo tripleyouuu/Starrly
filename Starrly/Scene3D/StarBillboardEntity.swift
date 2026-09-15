@@ -10,7 +10,7 @@ import AppKit
 import SwiftUI
 
 enum StarBillboardEntity {
-    static func make(star: Star) -> Entity {
+    static func make(star: Star) async -> Entity {
         let root = Entity()
         root.name = "star:\(star.id.uuidString)"
         root.components.set(BillboardComponent())
@@ -20,8 +20,10 @@ enum StarBillboardEntity {
         for (index, layerName) in StarAsset.layers(for: star.type).enumerated() {
             let mesh = MeshResource.generatePlane(width: 4, height: 4)
             var material = UnlitMaterial()
-            if let texture = try? TextureResource.load(named: layerName) {
+            if let texture = TextureAssetLoader.loadTexture(named: layerName) {
                 material.color = .init(tint: NSColor(star.color.color), texture: .init(texture))
+            } else {
+                material.color = .init(tint: NSColor(star.color.color))
             }
             material.blending = .transparent(opacity: .init(floatLiteral: 1))
             let layerEntity = ModelEntity(mesh: mesh, materials: [material])

@@ -15,20 +15,25 @@ struct DiscoveryFlowView: View {
     @State private var constellationName: String?
 
     var body: some View {
-        if let constellationName {
-            NameFirstStarStep(
-                onBack: { self.constellationName = nil },
-                onSubmit: { starName in
-                    createConstellation(name: constellationName, firstStarName: starName)
-                }
-            )
-        } else {
-            NameConstellationStep(
-                onBack: { appState.route = .home },
-                onSubmit: { name in
-                    constellationName = name
-                }
-            )
+        ZStack {
+            AmbientSkyView(constellations: allConstellations)
+                .ignoresSafeArea()
+
+            if let constellationName {
+                NameFirstStarStep(
+                    onBack: { self.constellationName = nil },
+                    onSubmit: { starName in
+                        createConstellation(name: constellationName, firstStarName: starName)
+                    }
+                )
+            } else {
+                NameConstellationStep(
+                    onBack: { appState.route = .home },
+                    onSubmit: { name in
+                        constellationName = name
+                    }
+                )
+            }
         }
     }
 

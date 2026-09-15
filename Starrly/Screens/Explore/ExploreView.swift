@@ -36,8 +36,8 @@ struct ExploreView: View {
             RealityView { content in
                 content.camera = .virtual
                 content.add(cameraRig.rigEntity)
-                content.add(SkySphereEntity.make())
-                content.add(HorizonCylinderEntity.make())
+                content.add(await SkySphereEntity.make())
+                content.add(await HorizonCylinderEntity.make())
 
                 for constellation in constellations {
                     guard let position = constellation.explorePosition else { continue }
@@ -45,8 +45,8 @@ struct ExploreView: View {
                     content.add(makeConstellationHitVolume(constellation: constellation, at: position))
 
                     for star in constellation.stars {
-                        let starEntity = StarBillboardEntity.make(star: star)
-                        starEntity.position = starWorldPosition(star: star, constellationCentroid: position)
+                        let starEntity = await StarBillboardEntity.make(star: star)
+                        starEntity.position = SkyProjection.starWorldPosition(star: star, constellationCentroid: position, radius: 490)
                         content.add(starEntity)
                     }
                 }
@@ -70,6 +70,7 @@ struct ExploreView: View {
                         handleTap(entity: value.entity)
                     }
             )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             ExploreOverlayUI(
                 labelText: labelText,
@@ -115,25 +116,7 @@ struct ExploreView: View {
         entity.name = "constellation:\(constellation.id.uuidString)"
         entity.components.set(InputTargetComponent())
         entity.components.set(CollisionComponent(shapes: [.generateSphere(radius: 12)]))
-        entity.position = worldPosition(for: position, radius: 490)
+        entity.position = SkyProjection.worldPosition(for: position, radius: 490)
         return entity
-    }
-
-    private func starWorldPosition(star: Star, constellationCentroid: SkyPosition) -> SIMD3<Float> {
-        let scale = 0.05
-        let position = SkyPosition(
-            yaw: constellationCentroid.yaw + star.localPosition.x * scale,
-            pitch: constellationCentroid.pitch + star.localPosition.y * scale
-        )
-        return worldPosition(for: position, radius: 490)
-    }
-
-    private func worldPosition(for position: SkyPosition, radius: Double) -> SIMD3<Float> {
-        let yawRadians = position.yaw * .pi / 180
-        let pitchRadians = position.pitch * .pi / 180
-        let x = radius * cos(pitchRadians) * sin(yawRadians)
-        let y = radius * sin(pitchRadians)
-        let z = -radius * cos(pitchRadians) * cos(yawRadians)
-        return SIMD3<Float>(Float(x), Float(y), Float(z))
     }
 }

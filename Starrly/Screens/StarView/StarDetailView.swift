@@ -15,6 +15,7 @@ struct StarDetailView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
+    @Query private var allConstellations: [Constellation]
 
     init(starID: UUID, returnTo: Route) {
         self.starID = starID
@@ -28,46 +29,51 @@ struct StarDetailView: View {
     }
 
     var body: some View {
-        VStack(spacing: 40) {
-            ZStack {
-                HStack {
-                    BackButton(action: { appState.route = returnTo })
-                    Spacer()
-                }
+        ZStack {
+            AmbientSkyView(constellations: allConstellations, isBlurred: true)
+                .ignoresSafeArea()
 
-                Text(star?.name ?? "")
-                    .font(.title2)
-                    .foregroundStyle(Color.starrlyOffWhite)
-            }
-
-            if let star {
-                HStack(alignment: .top, spacing: 40) {
-                    OrbitMapView(star: star, onSelect: selectSession)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .glassEffect(.starrly, in: .rect(cornerRadius: 20))
-
-                    VStack(alignment: .leading, spacing: 20) {
-                        HStack {
-                            Text("Add Planet…")
-                                .foregroundStyle(Color.starrlyOffWhite)
-
-                            Spacer()
-
-                            Button("Record Session", action: recordSession)
-                                .buttonStyle(.plain)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
-                                .foregroundStyle(Color.starrlyOffWhite)
-                                .glassEffect(.starrly.interactive(), in: .capsule)
-                        }
-
-                        MemberPlanetsList(sessions: star.sessions, onSelect: selectSession)
+            VStack(spacing: 40) {
+                ZStack {
+                    HStack {
+                        BackButton(action: { appState.route = returnTo })
+                        Spacer()
                     }
-                    .frame(maxWidth: .infinity)
+
+                    Text(star?.name ?? "")
+                        .font(.title2)
+                        .foregroundStyle(Color.starrlyOffWhite)
+                }
+
+                if let star {
+                    HStack(alignment: .top, spacing: 40) {
+                        OrbitMapView(star: star, onSelect: selectSession)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .glassEffect(.starrly, in: .rect(cornerRadius: 20))
+
+                        VStack(alignment: .leading, spacing: 20) {
+                            HStack {
+                                Text("Add Planet…")
+                                    .foregroundStyle(Color.starrlyOffWhite)
+
+                                Spacer()
+
+                                Button("Record Session", action: recordSession)
+                                    .buttonStyle(.plain)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 10)
+                                    .foregroundStyle(Color.starrlyOffWhite)
+                                    .glassEffect(.starrly.interactive(), in: .capsule)
+                            }
+
+                            MemberPlanetsList(sessions: star.sessions, onSelect: selectSession)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
                 }
             }
+            .padding(40)
         }
-        .padding(40)
     }
 
     private func recordSession() {

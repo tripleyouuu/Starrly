@@ -20,6 +20,7 @@ final class SkyCameraRig {
     static let maxPitch: Double = 85
 
     init() {
+        cameraEntity.components.set(PerspectiveCameraComponent(near: 0.1, far: 2000, fieldOfViewInDegrees: 60))
         rigEntity.addChild(cameraEntity)
         updateOrientation()
     }

@@ -8,6 +8,16 @@
 
 /* Begin PBXFileReference section */
 		DBA04B58305794970029735D /* Starrly.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Starrly.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DBE2E23D305845A200A4F14F /* RealityKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealityKit.framework; path = System/Library/Frameworks/RealityKit.framework; sourceTree = SDKROOT; };
+		DBE2E23F305845BC00A4F14F /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		DBE2E242305845DF00A4F14F /* MetalFX.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalFX.framework; path = System/Library/Frameworks/MetalFX.framework; sourceTree = SDKROOT; };
+		DBE2E243305845DF00A4F14F /* MetalPerformanceShadersGraph.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShadersGraph.framework; path = System/Library/Frameworks/MetalPerformanceShadersGraph.framework; sourceTree = SDKROOT; };
+		DBE2E244305845DF00A4F14F /* libswiftMetal.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftMetal.tbd; path = usr/lib/swift/libswiftMetal.tbd; sourceTree = SDKROOT; };
+		DBE2E245305845DF00A4F14F /* libswiftMetalKit.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftMetalKit.tbd; path = usr/lib/swift/libswiftMetalKit.tbd; sourceTree = SDKROOT; };
+		DBE2E246305845DF00A4F14F /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		DBE2E247305845DF00A4F14F /* MetalPerformanceShaders.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformanceShaders.framework; path = System/Library/Frameworks/MetalPerformanceShaders.framework; sourceTree = SDKROOT; };
+		DBE2E248305845DF00A4F14F /* MetalPerformancePrimitives.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalPerformancePrimitives.framework; path = System/Library/Frameworks/MetalPerformancePrimitives.framework; sourceTree = SDKROOT; };
+		DBE2E251305845EF00A4F14F /* RealityFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealityFoundation.framework; path = System/Library/Frameworks/RealityFoundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -46,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				DBA04B5A305794970029735D /* Starrly */,
+				DBE2E23C305845A200A4F14F /* Frameworks */,
 				DBA04B59305794970029735D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -56,6 +67,23 @@
 				DBA04B58305794970029735D /* Starrly.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DBE2E23C305845A200A4F14F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				DBE2E251305845EF00A4F14F /* RealityFoundation.framework */,
+				DBE2E244305845DF00A4F14F /* libswiftMetal.tbd */,
+				DBE2E245305845DF00A4F14F /* libswiftMetalKit.tbd */,
+				DBE2E242305845DF00A4F14F /* MetalFX.framework */,
+				DBE2E246305845DF00A4F14F /* MetalKit.framework */,
+				DBE2E248305845DF00A4F14F /* MetalPerformancePrimitives.framework */,
+				DBE2E247305845DF00A4F14F /* MetalPerformanceShaders.framework */,
+				DBE2E243305845DF00A4F14F /* MetalPerformanceShadersGraph.framework */,
+				DBE2E23F305845BC00A4F14F /* Metal.framework */,
+				DBE2E23D305845A200A4F14F /* RealityKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -267,15 +295,18 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2U76R4C6YB;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/swift",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.vitha.Starrly;
@@ -299,15 +330,18 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 2U76R4C6YB;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SDKROOT)/usr/lib/swift",
 				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.vitha.Starrly;

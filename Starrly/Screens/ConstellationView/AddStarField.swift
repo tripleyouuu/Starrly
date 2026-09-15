@@ -13,25 +13,29 @@ struct AddStarField: View {
     let onSubmit: (String) -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 20) {
             Text("Add Star…")
+                .font(.system(size: 27, weight: .semibold))
                 .foregroundStyle(Color.starrlyOffWhite)
 
             TextField("Skill Name", text: $name)
                 .textFieldStyle(.plain)
+                .font(.system(size: 27, weight: .semibold))
                 .foregroundStyle(Color.starrlyOffWhite)
                 .focused($isFocused)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .glassEffect(.starrly, in: .capsule)
+                .padding(.horizontal, 24)
+                .frame(maxWidth: 560, maxHeight: 80)
+                .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
                 .onSubmit(submit)
 
             Button(action: submit) {
                 Image(systemName: "checkmark")
+                    .font(.system(size: 19, weight: .regular))
                     .foregroundStyle(Color.starrlyOffWhite)
+                    .frame(width: 48, height: 48)
+                    .contentShape(Circle())
             }
             .buttonStyle(.plain)
-            .padding(10)
             .glassEffect(.starrly.interactive(), in: .circle)
         }
         .onAppear { isFocused = true }

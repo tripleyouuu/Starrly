@@ -21,13 +21,13 @@ struct HomeStatsPanel: View {
     private func statRow(label: String, value: Int) -> some View {
         HStack(spacing: 20) {
             Text(label)
+                .font(.system(size: 21, weight: .semibold))
                 .foregroundStyle(Color.starrlyOffWhite)
 
             Spacer()
 
             Text("\(value)")
-                .font(.title2)
-                .bold()
+                .font(.system(size: 33, weight: .bold))
                 .foregroundStyle(Color.starrlyOffWhite)
         }
     }

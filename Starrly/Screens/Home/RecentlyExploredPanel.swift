@@ -12,35 +12,45 @@ struct RecentlyExploredPanel: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(spacing: 0) {
             Text("Recently explored")
-                .font(.headline)
+                .font(.system(size: 27, weight: .semibold))
                 .foregroundStyle(Color.starrlyOffWhite)
+                .frame(maxWidth: .infinity, alignment: .center)
 
             ForEach(stars) { star in
+                Spacer()
+
                 Button {
                     appState.route = .star(star.id, returnTo: .home)
                 } label: {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 24) {
                         StarView(type: star.type, color: star.color)
-                            .frame(width: 32, height: 32)
+                            .frame(width: 44, height: 44)
 
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Text(star.name)
-                                .bold()
+                                .font(.system(size: 21, weight: .semibold))
                                 .foregroundStyle(Color.starrlyOffWhite)
+                                .lineLimit(1)
                             Text(star.constellation?.name ?? "")
+                                .font(.system(size: 19))
                                 .foregroundStyle(Color.starrlyOffWhite.opacity(0.7))
+                                .lineLimit(1)
                         }
+                        .frame(maxWidth: 260, alignment: .leading)
 
                         Spacer()
 
                         Image(systemName: "chevron.right")
+                            .font(.system(size: 21, weight: .semibold))
                             .foregroundStyle(Color.starrlyOffWhite)
                     }
                 }
                 .buttonStyle(.plain)
             }
+
+            Spacer()
         }
     }
 }

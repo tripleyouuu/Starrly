@@ -10,6 +10,8 @@ import SwiftData
 
 @Model
 final class Session {
+    static let defaultTitle = "New Session"
+
     var id: UUID
     var title: String
     var body: String
@@ -21,7 +23,7 @@ final class Session {
 
     init() {
         self.id = UUID()
-        self.title = "New Session"
+        self.title = Session.defaultTitle
         self.body = ""
         self.mediaPaths = []
         self.shapeValue = PlanetShape.allCases.randomElement()!.rawValue
@@ -30,5 +32,11 @@ final class Session {
 
     var shape: PlanetShape {
         PlanetShape(rawValue: shapeValue) ?? .one
+    }
+
+    var displayTitle: String {
+        title == Session.defaultTitle
+            ? createdAt.formatted(date: .abbreviated, time: .omitted)
+            : title
     }
 }

@@ -11,7 +11,6 @@ import SwiftData
 struct HomeView: View {
     @Query private var constellations: [Constellation]
     @Environment(AppState.self) private var appState
-    @AppStorage("hasShownFirstConstellationTagline") private var hasShownTagline = false
 
     private var isExistingUser: Bool {
         !constellations.isEmpty
@@ -34,10 +33,6 @@ struct HomeView: View {
         )
     }
 
-    private var showsTagline: Bool {
-        constellations.count == 1 && !hasShownTagline
-    }
-
     var body: some View {
         ZStack(alignment: .bottomLeading) {
             AmbientSkyView(constellations: constellations, autoPan: true)
@@ -47,38 +42,47 @@ struct HomeView: View {
                 appState.route = .discovery
             }
             .frame(maxWidth: 640)
-//            .padding(40)
 
             HStack(alignment: .top, spacing: 40) {
                 VStack(alignment: .leading, spacing: 20) {
                     Text("Hello, there.")
-                        .font(.largeTitle)
-                        .bold()
+                        .font(.system(size: 33, weight: .bold))
                         .foregroundStyle(Color.starrlyOffWhite)
 
-                    Text("Welcome to Starrly! Here, you light up the night sky.")
-                        .foregroundStyle(Color.starrlyOffWhite)
+                    (
+                        Text("Welcome to ")
+                        + Text("Starrly").fontWeight(.semibold)
+                        + Text("! Here, you light up the night sky.")
+                    )
+                    .font(.system(size: 19))
+                    .foregroundStyle(Color.starrlyOffWhite)
 
-                    HStack(spacing: 20) {
-                        Button("Discover") {
-                            appState.route = .discovery
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .foregroundStyle(Color.starrlyOffWhite)
-                        .glassEffect(.starrly.interactive(), in: .capsule)
-
+                    VStack(alignment: .leading, spacing: 16) {
                         if isExistingUser {
-                            Button("Explore") {
+                            Button {
                                 appState.route = .explore
+                            } label: {
+                                Text("Explore")
+                                    .font(.system(size: 27, weight: .semibold))
+                                    .frame(width: 280, height: 60)
+                                    .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
                             .foregroundStyle(Color.starrlyOffWhite)
-                            .glassEffect(.starrly.interactive(), in: .capsule)
+                            .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
                         }
+
+                        Button {
+                            appState.route = .discovery
+                        } label: {
+                            Text("Discover")
+                                .font(.system(size: 27, weight: .semibold))
+                                .frame(width: 280, height: 60)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Color.starrlyOffWhite)
+                        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
                     }
 
                     Spacer()
@@ -94,34 +98,33 @@ struct HomeView: View {
                         )
 
                         MoonPhasePanel()
-                            .frame(width: 60, height: 60)
+                            .frame(width: 160, height: 160)
                     }
                     .padding(24)
-                    .glassEffect(.starrly, in: .rect(cornerRadius: 24))
+                    .frame(width: 480, height: 240)
+                    .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
 
                     if isExistingUser {
                         RecentlyExploredPanel(stars: recentlyExploredStars)
                             .padding(24)
-                            .glassEffect(.starrly, in: .rect(cornerRadius: 24))
+                            .frame(width: 480, height: 360)
+                            .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
+
+                        Text("Discover thyself, discover the universe.")
+                            .font(.system(size: 13))
+                            .italic()
+                            .foregroundStyle(Color.starrlyOffWhite)
+                            .frame(maxWidth: .infinity, alignment: .center)
                     } else {
                         Text("Learn something new to discover a constellation, and add new stars by identifying skills to work on. The more you practice, the brighter they glow!")
                             .foregroundStyle(Color.starrlyOffWhite)
                             .padding(24)
-                            .glassEffect(.starrly, in: .rect(cornerRadius: 24))
-                    }
-
-                    if showsTagline {
-                        Text("Discover thyself, discover the universe.")
-                            .italic()
-                            .foregroundStyle(Color.starrlyOffWhite)
-                            .onAppear {
-                                hasShownTagline = true
-                            }
+                            .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
                     }
 
                     Spacer()
                 }
-                .frame(maxWidth: 420)
+                .frame(maxWidth: 480)
             }
             .padding(40)
         }

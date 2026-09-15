@@ -41,6 +41,7 @@ struct ConstellationMapView: View {
                     ForEach(stars) { star in
                         StarView(type: star.type, color: star.color)
                             .frame(width: 32, height: 32)
+                            .contentShape(Rectangle())
                             .position(
                                 x: center.x + star.localPosition.x,
                                 y: center.y + star.localPosition.y
@@ -49,10 +50,9 @@ struct ConstellationMapView: View {
                                 hoveredStarID = isHovering ? star.id : nil
                             }
                             .overlay(alignment: .top) {
-                                if hoveredStarID == star.id {
-                                    HoverLabel(text: star.name)
-                                        .offset(y: -24)
-                                }
+                                HoverLabel(text: star.name)
+                                    .offset(y: -24)
+                                    .opacity(hoveredStarID == star.id ? 1 : 0)
                             }
                     }
                 }

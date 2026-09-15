@@ -15,10 +15,10 @@ struct SessionTitleField: View {
 
     var body: some View {
         if isEditing {
-            TextField("New Session", text: $draft)
+            TextField(Session.defaultTitle, text: $draft)
                 .textFieldStyle(.plain)
                 .multilineTextAlignment(.center)
-                .font(.title2)
+                .font(.system(size: 33, weight: .bold))
                 .foregroundStyle(Color.starrlyOffWhite)
                 .focused($isFocused)
                 .onAppear {
@@ -31,7 +31,7 @@ struct SessionTitleField: View {
                 }
         } else {
             Text(title)
-                .font(.title2)
+                .font(.system(size: 33, weight: .bold))
                 .foregroundStyle(Color.starrlyOffWhite)
                 .onTapGesture {
                     isEditing = true
@@ -41,7 +41,7 @@ struct SessionTitleField: View {
 
     private func commit() {
         let trimmed = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        title = trimmed.isEmpty ? "New Session" : trimmed
+        title = trimmed.isEmpty ? Session.defaultTitle : trimmed
         isEditing = false
     }
 }

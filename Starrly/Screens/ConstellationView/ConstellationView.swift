@@ -32,7 +32,7 @@ struct ConstellationView: View {
             AmbientSkyView(constellations: allConstellations, isBlurred: true, autoPan: true)
                 .ignoresSafeArea()
 
-            VStack(spacing: 40) {
+            ZStack {
                 ZStack {
                     HStack {
                         BackButton(action: { appState.route = returnTo })
@@ -40,21 +40,29 @@ struct ConstellationView: View {
                     }
 
                     Text(constellation?.name ?? "")
-                        .font(.title2)
+                        .font(.system(size: 33, weight: .bold))
                         .foregroundStyle(Color.starrlyOffWhite)
                 }
+                .frame(maxHeight: .infinity, alignment: .top)
 
                 HStack(alignment: .top, spacing: 40) {
                     ConstellationMapView(stars: constellation?.stars ?? [])
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .glassEffect(.starrly, in: .rect(cornerRadius: 20))
+                        .frame(maxWidth: 640, maxHeight: 720)
+                        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
 
-                    VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 40) {
                         AddStarField(onSubmit: addStar)
+
+                        Rectangle()
+                            .fill(Color.starrlyOffWhite)
+                            .frame(maxWidth: 780, maxHeight: 1)
+
                         MemberStarsList(stars: constellation?.stars ?? [], onSelect: selectStar)
+                            .frame(maxWidth: 780, maxHeight: .infinity, alignment: .top)
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, maxHeight: 720)
                 }
+                .padding(.top, 40)
             }
             .padding(40)
         }

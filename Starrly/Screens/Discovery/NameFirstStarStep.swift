@@ -9,36 +9,57 @@ import SwiftUI
 
 struct NameFirstStarStep: View {
     @State private var name = ""
+    @State private var starColor: StarColor = .lavender
+    @FocusState private var isNameFocused: Bool
     let onBack: () -> Void
     let onSubmit: (String) -> Void
 
     var body: some View {
-        VStack(spacing: 40) {
+        ZStack {
             DiscoveryHeader(onBack: onBack)
-
-            Spacer()
+                .frame(maxHeight: .infinity, alignment: .top)
 
             VStack(spacing: 20) {
-                StarView(type: .protoStar, color: .lavender)
-                    .frame(width: 60, height: 60)
-
                 Text("To start exploring, define your first star here.")
+                    .font(.system(size: 21, weight: .semibold))
                     .foregroundStyle(Color.starrlyOffWhite)
 
                 TextField("What skill will you start with?", text: $name)
                     .textFieldStyle(.plain)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
+                    .font(.system(size: 27, weight: .semibold))
                     .foregroundStyle(Color.starrlyOffWhite)
-                    .glassEffect(.starrly, in: .capsule)
-                    .frame(maxWidth: 400)
+                    .frame(width: 640, height: 80)
+                    .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
+                    .focused($isNameFocused)
                     .onSubmit(submit)
             }
-
-            Spacer()
+            .overlay(alignment: .top) {
+                StarView(type: .protoStar, color: starColor)
+                    .frame(width: 60, height: 60)
+                    .animation(.easeInOut(duration: 1.2), value: starColor)
+                    .offset(y: -84)
+            }
         }
         .padding(40)
+        .onAppear {
+            DispatchQueue.main.async {
+                isNameFocused = true
+            }
+        }
+        .task {
+            await cycleStarColors()
+        }
+    }
+
+    private func cycleStarColors() async {
+        let colors = StarColor.allCases
+        var index = 0
+        while !Task.isCancelled {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            index = (index + 1) % colors.count
+            starColor = colors[index]
+        }
     }
 
     private func submit() {

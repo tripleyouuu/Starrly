@@ -52,6 +52,7 @@ struct OrbitMapView: View {
                         Image(session.shape.assetName)
                             .resizable()
                             .frame(width: 16, height: 16)
+                            .contentShape(Rectangle())
                             .position(point)
                             .onHover { isHovering in
                                 hoveredSessionID = isHovering ? session.id : nil
@@ -60,10 +61,9 @@ struct OrbitMapView: View {
                                 onSelect(session)
                             }
                             .overlay(alignment: .top) {
-                                if hoveredSessionID == session.id {
-                                    HoverLabel(text: session.title)
-                                        .offset(y: -20)
-                                }
+                                HoverLabel(text: session.displayTitle)
+                                    .offset(y: -20)
+                                    .opacity(hoveredSessionID == session.id ? 1 : 0)
                             }
                     }
                 }

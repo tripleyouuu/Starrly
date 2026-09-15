@@ -19,7 +19,7 @@ struct DiscoveryHeader: View {
             }
 
             Text("Discovery")
-                .font(.title2)
+                .font(.system(size: 33, weight: .bold))
                 .foregroundStyle(Color.starrlyOffWhite)
         }
     }

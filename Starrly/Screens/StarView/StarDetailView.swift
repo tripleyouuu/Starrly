@@ -33,7 +33,7 @@ struct StarDetailView: View {
             AmbientSkyView(constellations: allConstellations, isBlurred: true, autoPan: true)
                 .ignoresSafeArea()
 
-            VStack(spacing: 40) {
+            ZStack {
                 ZStack {
                     HStack {
                         BackButton(action: { appState.route = returnTo })
@@ -41,35 +41,50 @@ struct StarDetailView: View {
                     }
 
                     Text(star?.name ?? "")
-                        .font(.title2)
+                        .font(.system(size: 33, weight: .bold))
                         .foregroundStyle(Color.starrlyOffWhite)
                 }
+                .frame(maxHeight: .infinity, alignment: .top)
 
                 if let star {
                     HStack(alignment: .top, spacing: 40) {
                         OrbitMapView(star: star, onSelect: selectSession)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .glassEffect(.starrly, in: .rect(cornerRadius: 20))
+                            .frame(maxWidth: 640, maxHeight: 720)
+                            .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
 
-                        VStack(alignment: .leading, spacing: 20) {
+                        VStack(alignment: .leading, spacing: 40) {
                             HStack {
                                 Text("Add Planet…")
+                                    .font(.system(size: 27, weight: .semibold))
                                     .foregroundStyle(Color.starrlyOffWhite)
 
                                 Spacer()
 
-                                Button("Record Session", action: recordSession)
-                                    .buttonStyle(.plain)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 10)
-                                    .foregroundStyle(Color.starrlyOffWhite)
-                                    .glassEffect(.starrly.interactive(), in: .capsule)
+                                Button {
+                                    recordSession()
+                                } label: {
+                                    Text("Record Session")
+                                        .font(.system(size: 27, weight: .semibold))
+                                        .frame(width: 280, height: 60)
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(Color.starrlyOffWhite)
+                                .glassEffect(.starrly.interactive(), in: RoundedRectangle(cornerRadius: 24))
+
+                                Spacer()
                             }
 
+                            Rectangle()
+                                .fill(Color.starrlyOffWhite)
+                                .frame(maxWidth: 780, maxHeight: 1)
+
                             MemberPlanetsList(sessions: star.sessions, onSelect: selectSession)
+                                .frame(maxWidth: 780, maxHeight: .infinity, alignment: .top)
                         }
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: .infinity, maxHeight: 720)
                     }
+                    .padding(.top, 40)
                 }
             }
             .padding(40)

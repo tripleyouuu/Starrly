@@ -9,27 +9,30 @@
 import SwiftUI
 import PhotosUI
 import SwiftData
+import UniformTypeIdentifiers
 
 struct SessionContentView: View {
     @Bindable var session: Session
     let onSave: () -> Void
 
     @Query private var allConstellations: [Constellation]
-    @State private var photosPickerItem: PhotosPickerItem?
+    @State private var photosPickerItems: [PhotosPickerItem] = []
 
     var body: some View {
         ZStack {
             AmbientSkyView(constellations: allConstellations, isBlurred: true)
                 .ignoresSafeArea()
 
-            VStack(spacing: 20) {
+            VStack(spacing: 32) {
                 HStack {
                     Button(action: onSave) {
                         Image(systemName: "checkmark")
+                            .font(.system(size: 19, weight: .regular))
                             .foregroundStyle(Color.starrlyOffWhite)
+                            .frame(width: 48, height: 48)
+                            .contentShape(Circle())
                     }
                     .buttonStyle(.plain)
-                    .padding(10)
                     .glassEffect(.starrly.interactive(), in: .circle)
 
                     Spacer()
@@ -38,22 +41,22 @@ struct SessionContentView: View {
 
                     Spacer()
 
-                    PhotosPicker(selection: $photosPickerItem, matching: .any(of: [.images, .videos])) {
+                    PhotosPicker(selection: $photosPickerItems, matching: .any(of: [.images, .videos])) {
                         Image(systemName: "photo.on.rectangle")
+                            .font(.system(size: 19, weight: .regular))
                             .foregroundStyle(Color.starrlyOffWhite)
+                            .frame(width: 48, height: 48)
+                            .contentShape(Circle())
                     }
                     .buttonStyle(.plain)
-                    .padding(10)
                     .glassEffect(.starrly.interactive(), in: .circle)
                 }
 
                 Text(session.createdAt.formatted(date: .abbreviated, time: .omitted))
+                    .font(.system(size: 13))
                     .italic()
                     .foregroundStyle(Color.starrlyOffWhite)
                     .frame(maxWidth: .infinity, alignment: .leading)
-
-                SessionBodyEditor(text: $session.body)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 if !session.mediaPaths.isEmpty {
                     MediaCarousel(filenames: session.mediaPaths) { filename in
@@ -61,22 +64,78 @@ struct SessionContentView: View {
                         MediaStorage.delete(filename)
                     }
                 }
+
+                SessionBodyEditor(text: $session.body)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .onPasteCommand(of: [.fileURL, .image, .movie], perform: handleProviders)
+                    .onDrop(of: [.fileURL, .image, .movie], isTargeted: nil) { providers in
+                        handleProviders(providers)
+                        return true
+                    }
             }
             .padding(40)
         }
-        .onChange(of: photosPickerItem) { _, newItem in
-            handlePick(newItem)
+        .onChange(of: photosPickerItems) { _, newItems in
+            handlePick(newItems)
+        }
+        .onPasteCommand(of: [.fileURL, .image, .movie], perform: handleProviders)
+        .onDrop(of: [.fileURL, .image, .movie], isTargeted: nil) { providers in
+            handleProviders(providers)
+            return true
         }
     }
 
-    private func handlePick(_ item: PhotosPickerItem?) {
-        guard let item else { return }
-        Task {
-            guard let data = try? await item.loadTransferable(type: Data.self) else { return }
-            let fileExtension = item.supportedContentTypes.first?.preferredFilenameExtension ?? "dat"
-            if let filename = MediaStorage.save(data, fileExtension: fileExtension) {
-                session.mediaPaths.append(filename)
+    private func handleProviders(_ providers: [NSItemProvider]) {
+        for provider in providers {
+            if provider.canLoadObject(ofClass: URL.self) {
+                _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                    guard let url, let data = try? Data(contentsOf: url) else { return }
+                    let fileExtension = url.pathExtension.isEmpty ? "dat" : url.pathExtension
+                    Task { @MainActor in addMedia(data: data, fileExtension: fileExtension) }
+                }
+            } else if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
+                provider.loadDataRepresentation(forTypeIdentifier: UTType.movie.identifier) { data, _ in
+                    guard let data else { return }
+                    Task { @MainActor in addMedia(data: data, fileExtension: "mov") }
+                }
+            } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+                provider.loadDataRepresentation(forTypeIdentifier: UTType.image.identifier) { data, _ in
+                    guard let data else { return }
+                    Task { @MainActor in addMedia(data: data, fileExtension: "png") }
+                }
             }
+        }
+    }
+
+    private func addMedia(data: Data, fileExtension: String) {
+        if let filename = MediaStorage.save(data, fileExtension: fileExtension) {
+            session.mediaPaths.append(filename)
+        }
+    }
+
+    private func handlePick(_ items: [PhotosPickerItem]) {
+        guard !items.isEmpty else { return }
+        photosPickerItems = []
+        Task {
+            let filenames = await withTaskGroup(of: (Int, String?).self) { group in
+                for (index, item) in items.enumerated() {
+                    group.addTask {
+                        guard let data = try? await item.loadTransferable(type: Data.self) else {
+                            return (index, nil)
+                        }
+                        let fileExtension = item.supportedContentTypes.first?.preferredFilenameExtension ?? "dat"
+                        return (index, MediaStorage.save(data, fileExtension: fileExtension))
+                    }
+                }
+                var results: [(Int, String)] = []
+                for await (index, filename) in group {
+                    if let filename {
+                        results.append((index, filename))
+                    }
+                }
+                return results.sorted { $0.0 < $1.0 }.map(\.1)
+            }
+            session.mediaPaths.append(contentsOf: filenames)
         }
     }
 }

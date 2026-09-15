@@ -42,6 +42,8 @@ struct ExploreOverlayUI: View {
             if let labelText {
                 Text(labelText)
                     .foregroundStyle(Color.starrlyOffWhite)
+                    .lineLimit(1)
+                    .frame(maxWidth: 400, alignment: .center)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
                     .glassEffect(.starrly, in: .capsule)

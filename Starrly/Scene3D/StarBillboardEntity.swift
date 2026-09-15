@@ -16,7 +16,7 @@ enum StarBillboardEntity {
         root.components.set(BillboardComponent())
         root.components.set(InputTargetComponent())
 
-        let size = Float(40 * sizeScale)
+        let size = Float(20 * sizeScale)
         root.components.set(CollisionComponent(shapes: [.generateBox(size: [size, size, 0.1])]))
 
         for (index, layerName) in StarAsset.layers(for: star.type).enumerated() {

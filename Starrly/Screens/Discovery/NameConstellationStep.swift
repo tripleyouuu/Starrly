@@ -9,33 +9,37 @@ import SwiftUI
 
 struct NameConstellationStep: View {
     @State private var name = ""
+    @FocusState private var isNameFocused: Bool
     let onBack: () -> Void
     let onSubmit: (String) -> Void
 
     var body: some View {
-        VStack(spacing: 40) {
+        ZStack {
             DiscoveryHeader(onBack: onBack)
-
-            Spacer()
+                .frame(maxHeight: .infinity, alignment: .top)
 
             VStack(spacing: 20) {
                 Text("You've found a new constellation! Give it a name.")
+                    .font(.system(size: 21, weight: .semibold))
                     .foregroundStyle(Color.starrlyOffWhite)
 
                 TextField("What are you learning?", text: $name)
                     .textFieldStyle(.plain)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
+                    .font(.system(size: 27, weight: .semibold))
                     .foregroundStyle(Color.starrlyOffWhite)
-                    .glassEffect(.starrly, in: .capsule)
-                    .frame(maxWidth: 400)
+                    .frame(width: 640, height: 80)
+                    .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
+                    .focused($isNameFocused)
                     .onSubmit(submit)
             }
-
-            Spacer()
         }
         .padding(40)
+        .onAppear {
+            DispatchQueue.main.async {
+                isNameFocused = true
+            }
+        }
     }
 
     private func submit() {

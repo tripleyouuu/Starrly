@@ -12,8 +12,9 @@ struct RecentlyExploredPanel: View {
     @Environment(AppState.self) private var appState
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 24) {
             Text("Recently explored")
+                .font(.headline)
                 .foregroundStyle(Color.starrlyOffWhite)
 
             ForEach(stars) { star in
@@ -24,8 +25,9 @@ struct RecentlyExploredPanel: View {
                         StarView(type: star.type, color: star.color)
                             .frame(width: 32, height: 32)
 
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text(star.name)
+                                .bold()
                                 .foregroundStyle(Color.starrlyOffWhite)
                             Text(star.constellation?.name ?? "")
                                 .foregroundStyle(Color.starrlyOffWhite.opacity(0.7))

@@ -14,6 +14,7 @@ struct ConstellationView: View {
 
     @Environment(AppState.self) private var appState
     @Query private var constellations: [Constellation]
+    @Query private var allConstellations: [Constellation]
 
     init(constellationID: UUID, returnTo: Route) {
         self.constellationID = constellationID
@@ -27,31 +28,36 @@ struct ConstellationView: View {
     }
 
     var body: some View {
-        VStack(spacing: 40) {
-            ZStack {
-                HStack {
-                    BackButton(action: { appState.route = returnTo })
-                    Spacer()
+        ZStack {
+            AmbientSkyView(constellations: allConstellations, isBlurred: true, autoPan: true)
+                .ignoresSafeArea()
+
+            VStack(spacing: 40) {
+                ZStack {
+                    HStack {
+                        BackButton(action: { appState.route = returnTo })
+                        Spacer()
+                    }
+
+                    Text(constellation?.name ?? "")
+                        .font(.title2)
+                        .foregroundStyle(Color.starrlyOffWhite)
                 }
 
-                Text(constellation?.name ?? "")
-                    .font(.title2)
-                    .foregroundStyle(Color.starrlyOffWhite)
-            }
+                HStack(alignment: .top, spacing: 40) {
+                    ConstellationMapView(stars: constellation?.stars ?? [])
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .glassEffect(.starrly, in: .rect(cornerRadius: 20))
 
-            HStack(alignment: .top, spacing: 40) {
-                ConstellationMapView(stars: constellation?.stars ?? [])
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .glassEffect(.starrly, in: .rect(cornerRadius: 20))
-
-                VStack(alignment: .leading, spacing: 20) {
-                    AddStarField(onSubmit: addStar)
-                    MemberStarsList(stars: constellation?.stars ?? [], onSelect: selectStar)
+                    VStack(alignment: .leading, spacing: 20) {
+                        AddStarField(onSubmit: addStar)
+                        MemberStarsList(stars: constellation?.stars ?? [], onSelect: selectStar)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
             }
+            .padding(40)
         }
-        .padding(40)
     }
 
     private func addStar(name: String) {

@@ -16,6 +16,7 @@ struct ExploreView: View {
     @State private var cameraRig = SkyCameraRig()
     @State private var interactionState: ExploreInteractionState = .idle
     @State private var lastDragTranslation: CGSize = .zero
+    @State private var sceneResetToken = UUID()
 
     private var labelText: String? {
         switch interactionState {
@@ -34,22 +35,12 @@ struct ExploreView: View {
     var body: some View {
         ZStack {
             RealityView { content in
+                cameraRig.setInitial(yaw: 0, pitch: SkyCameraRig.defaultPitch)
                 content.camera = .virtual
                 content.add(cameraRig.rigEntity)
-                content.add(SkySphereEntity.make())
-                content.add(HorizonCylinderEntity.make())
+                content.add(await SkySphereEntity.make())
 
-                for constellation in constellations {
-                    guard let position = constellation.explorePosition else { continue }
-
-                    content.add(makeConstellationHitVolume(constellation: constellation, at: position))
-
-                    for star in constellation.stars {
-                        let starEntity = StarBillboardEntity.make(star: star)
-                        starEntity.position = starWorldPosition(star: star, constellationCentroid: position)
-                        content.add(starEntity)
-                    }
-                }
+                await ConstellationSceneBuilder.populate(content: content, constellations: constellations, includeHitVolumes: true)
             }
             .gesture(
                 DragGesture()
@@ -70,13 +61,21 @@ struct ExploreView: View {
                         handleTap(entity: value.entity)
                     }
             )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .id(sceneResetToken)
 
             ExploreOverlayUI(
                 labelText: labelText,
                 onBack: { appState.route = .home },
-                onDiscover: { appState.route = .discovery }
+                onDiscover: { appState.route = .discovery },
+                onResetLayout: resetLayout
             )
         }
+    }
+
+    private func resetLayout() {
+        cameraRig = SkyCameraRig()
+        sceneResetToken = UUID()
     }
 
     private func handleTap(entity: Entity) {
@@ -108,32 +107,5 @@ struct ExploreView: View {
             current = e.parent
         }
         return nil
-    }
-
-    private func makeConstellationHitVolume(constellation: Constellation, at position: SkyPosition) -> Entity {
-        let entity = Entity()
-        entity.name = "constellation:\(constellation.id.uuidString)"
-        entity.components.set(InputTargetComponent())
-        entity.components.set(CollisionComponent(shapes: [.generateSphere(radius: 12)]))
-        entity.position = worldPosition(for: position, radius: 490)
-        return entity
-    }
-
-    private func starWorldPosition(star: Star, constellationCentroid: SkyPosition) -> SIMD3<Float> {
-        let scale = 0.05
-        let position = SkyPosition(
-            yaw: constellationCentroid.yaw + star.localPosition.x * scale,
-            pitch: constellationCentroid.pitch + star.localPosition.y * scale
-        )
-        return worldPosition(for: position, radius: 490)
-    }
-
-    private func worldPosition(for position: SkyPosition, radius: Double) -> SIMD3<Float> {
-        let yawRadians = position.yaw * .pi / 180
-        let pitchRadians = position.pitch * .pi / 180
-        let x = radius * cos(pitchRadians) * sin(yawRadians)
-        let y = radius * sin(pitchRadians)
-        let z = -radius * cos(pitchRadians) * cos(yawRadians)
-        return SIMD3<Float>(Float(x), Float(y), Float(z))
     }
 }

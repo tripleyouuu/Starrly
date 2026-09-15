@@ -15,27 +15,30 @@ struct DiscoveryFlowView: View {
     @State private var constellationName: String?
 
     var body: some View {
-        if let constellationName {
-            NameFirstStarStep(
-                onBack: { self.constellationName = nil },
-                onSubmit: { starName in
-                    createConstellation(name: constellationName, firstStarName: starName)
-                }
-            )
-        } else {
-            NameConstellationStep(
-                onBack: { appState.route = .home },
-                onSubmit: { name in
-                    constellationName = name
-                }
-            )
+        ZStack {
+            AmbientSkyView(constellations: allConstellations, autoPan: true)
+                .ignoresSafeArea()
+
+            if let constellationName {
+                NameFirstStarStep(
+                    onBack: { self.constellationName = nil },
+                    onSubmit: { starName in
+                        createConstellation(name: constellationName, firstStarName: starName)
+                    }
+                )
+            } else {
+                NameConstellationStep(
+                    onBack: { appState.route = .home },
+                    onSubmit: { name in
+                        constellationName = name
+                    }
+                )
+            }
         }
     }
 
     private func createConstellation(name: String, firstStarName: String) {
         let constellation = Constellation(name: name)
-        let existingPositions = allConstellations.compactMap(\.explorePosition)
-        constellation.explorePosition = ExploreLayoutEngine.placeNewConstellation(among: existingPositions)
 
         let color = StarColor.allCases.randomElement() ?? .lavender
         let position = ConstellationLayoutEngine.placeNewStar(among: [])

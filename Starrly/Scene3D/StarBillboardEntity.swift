@@ -10,20 +10,25 @@ import AppKit
 import SwiftUI
 
 enum StarBillboardEntity {
-    static func make(star: Star) -> Entity {
+    static func make(star: Star, sizeScale: Double = 1.0) async -> Entity {
         let root = Entity()
         root.name = "star:\(star.id.uuidString)"
         root.components.set(BillboardComponent())
         root.components.set(InputTargetComponent())
-        root.components.set(CollisionComponent(shapes: [.generateBox(size: [4, 4, 0.1])]))
+
+        let size = Float(40 * sizeScale)
+        root.components.set(CollisionComponent(shapes: [.generateBox(size: [size, size, 0.1])]))
 
         for (index, layerName) in StarAsset.layers(for: star.type).enumerated() {
-            let mesh = MeshResource.generatePlane(width: 4, height: 4)
+            let mesh = MeshResource.generatePlane(width: size, height: size)
             var material = UnlitMaterial()
-            if let texture = try? TextureResource.load(named: layerName) {
-                material.color = .init(tint: NSColor(star.color.color), texture: .init(texture))
+            if let texture = TextureAssetLoader.loadTexture(named: layerName) {
+                let tint = NSColor(star.color.color).withAlphaComponent(0.999)
+                material.color = .init(tint: tint, texture: .init(texture))
+                material.blending = .transparent(opacity: .init(scale: 1.0, texture: .init(texture)))
+            } else {
+                print("\(layerName) texture failed to load")
             }
-            material.blending = .transparent(opacity: .init(floatLiteral: 1))
             let layerEntity = ModelEntity(mesh: mesh, materials: [material])
             layerEntity.position.z = Float(index) * 0.01
             root.addChild(layerEntity)

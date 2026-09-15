@@ -11,6 +11,7 @@ struct ExploreOverlayUI: View {
     let labelText: String?
     let onBack: () -> Void
     let onDiscover: () -> Void
+    let onResetLayout: () -> Void
 
     var body: some View {
         VStack {
@@ -18,6 +19,14 @@ struct ExploreOverlayUI: View {
                 BackButton(action: onBack)
 
                 Spacer()
+
+                Button(action: onResetLayout) {
+                    Image(systemName: "ladybug")
+                        .foregroundStyle(Color.starrlyOffWhite)
+                }
+                .buttonStyle(.plain)
+                .padding(10)
+                .glassEffect(.starrly.interactive(), in: .circle)
 
                 Button(action: onDiscover) {
                     Image(systemName: "plus")

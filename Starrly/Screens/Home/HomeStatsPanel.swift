@@ -27,6 +27,7 @@ struct HomeStatsPanel: View {
 
             Text("\(value)")
                 .font(.title2)
+                .bold()
                 .foregroundStyle(Color.starrlyOffWhite)
         }
     }

@@ -40,15 +40,20 @@ struct HomeView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
+            AmbientSkyView(constellations: constellations, autoPan: true)
+                .ignoresSafeArea()
+
             TelescopeView {
                 appState.route = .discovery
             }
-            .padding(40)
+            .frame(maxWidth: 640)
+//            .padding(40)
 
             HStack(alignment: .top, spacing: 40) {
                 VStack(alignment: .leading, spacing: 20) {
                     Text("Hello, there.")
                         .font(.largeTitle)
+                        .bold()
                         .foregroundStyle(Color.starrlyOffWhite)
 
                     Text("Welcome to Starrly! Here, you light up the night sky.")
@@ -91,18 +96,18 @@ struct HomeView: View {
                         MoonPhasePanel()
                             .frame(width: 60, height: 60)
                     }
-                    .padding(20)
-                    .glassEffect(.starrly, in: .rect(cornerRadius: 20))
+                    .padding(24)
+                    .glassEffect(.starrly, in: .rect(cornerRadius: 24))
 
                     if isExistingUser {
                         RecentlyExploredPanel(stars: recentlyExploredStars)
-                            .padding(20)
-                            .glassEffect(.starrly, in: .rect(cornerRadius: 20))
+                            .padding(24)
+                            .glassEffect(.starrly, in: .rect(cornerRadius: 24))
                     } else {
                         Text("Learn something new to discover a constellation, and add new stars by identifying skills to work on. The more you practice, the brighter they glow!")
                             .foregroundStyle(Color.starrlyOffWhite)
-                            .padding(20)
-                            .glassEffect(.starrly, in: .rect(cornerRadius: 20))
+                            .padding(24)
+                            .glassEffect(.starrly, in: .rect(cornerRadius: 24))
                     }
 
                     if showsTagline {
@@ -116,6 +121,7 @@ struct HomeView: View {
 
                     Spacer()
                 }
+                .frame(maxWidth: 420)
             }
             .padding(40)
         }

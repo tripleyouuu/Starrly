@@ -34,7 +34,7 @@ struct OrbitMapView: View {
     }
 
     private var ringCount: Int {
-        max(3, orderedSessions.count)
+        max(4, orderedSessions.count)
     }
 
     private let ringSpacing: CGFloat = 45
@@ -156,7 +156,7 @@ struct OrbitMapView: View {
                         .padding(.vertical, 6)
                         .fixedSize()
                         .contentShape(Capsule())
-                        .glassEffect(.clear.interactive(), in: .capsule)
+                        .glassEffect(.starrly.interactive(), in: .capsule)
                         .position(x: screenPoint.x, y: screenPoint.y - 24)
                         .onTapGesture {
                             onSelect(session)

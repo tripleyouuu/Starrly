@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import TipKit
 
 struct ConstellationView: View {
     let constellationID: UUID
@@ -15,6 +16,8 @@ struct ConstellationView: View {
     @Environment(AppState.self) private var appState
     @Query private var constellations: [Constellation]
     @Query private var allConstellations: [Constellation]
+
+    private static let mapHideThreshold: CGFloat = 900
 
     init(constellationID: UUID, returnTo: Route) {
         self.constellationID = constellationID
@@ -32,37 +35,37 @@ struct ConstellationView: View {
             AmbientSkyView(constellations: allConstellations, isBlurred: true, autoPan: true)
                 .ignoresSafeArea()
 
-            ZStack {
-                ZStack {
-                    HStack {
-                        BackButton(action: { appState.route = returnTo })
-                        Spacer()
+            VStack(spacing: 40) {
+                ScreenHeader(title: constellation?.name ?? "", onBack: { appState.route = returnTo })
+
+                GeometryReader { geometry in
+                    let showsMap = geometry.size.width >= Self.mapHideThreshold
+
+                    HStack(alignment: .top, spacing: 60) {
+                        if showsMap {
+                            ConstellationMapView(stars: constellation?.stars ?? [], onSelect: selectStar)
+                                .frame(width: min(640, geometry.size.width * 0.45))
+                                .frame(maxHeight: .infinity)
+                                .glassEffect(.starrly, in: RoundedRectangle(cornerRadius: 24))
+                                .popoverTip(ConstellationMapTip(), arrowEdge: .trailing)
+                                .task { await watchMapTipDismissal() }
+                        }
+
+                        VStack(alignment: .leading, spacing: 40) {
+                            AddStarField(onSubmit: addStar)
+                                .frame(maxWidth: 720, alignment: .leading)
+
+                            Rectangle()
+                                .fill(Color.starrlyOffWhite)
+                                .frame(maxWidth: 720, maxHeight: 1)
+
+                            MemberStarsList(stars: constellation?.stars ?? [], onSelect: selectStar)
+                                .frame(maxWidth: 720, maxHeight: .infinity, alignment: .top)
+                                .popoverTip(MemberStarsTip(), arrowEdge: .top)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     }
-
-                    Text(constellation?.name ?? "")
-                        .font(.system(size: 33, weight: .bold))
-                        .foregroundStyle(Color.starrlyOffWhite)
                 }
-                .frame(maxHeight: .infinity, alignment: .top)
-
-                HStack(alignment: .top, spacing: 40) {
-                    ConstellationMapView(stars: constellation?.stars ?? [], onSelect: selectStar)
-                        .frame(maxWidth: 640, maxHeight: 720)
-                        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
-
-                    VStack(alignment: .leading, spacing: 40) {
-                        AddStarField(onSubmit: addStar)
-
-                        Rectangle()
-                            .fill(Color.starrlyOffWhite)
-                            .frame(maxWidth: 780, maxHeight: 1)
-
-                        MemberStarsList(stars: constellation?.stars ?? [], onSelect: selectStar)
-                            .frame(maxWidth: 780, maxHeight: .infinity, alignment: .top)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: 720)
-                }
-                .padding(.top, 40)
             }
             .padding(40)
         }
@@ -80,5 +83,14 @@ struct ConstellationView: View {
 
     private func selectStar(_ star: Star) {
         appState.route = .star(star.id, returnTo: .constellation(constellationID, returnTo: returnTo))
+    }
+
+    private func watchMapTipDismissal() async {
+        for await status in ConstellationMapTip().statusUpdates {
+            if case .invalidated = status {
+                await ConstellationMapTip.dismissedEvent.donate()
+                return
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import TipKit
 
 struct HomeView: View {
     @Query private var constellations: [Constellation]
@@ -18,6 +19,10 @@ struct HomeView: View {
 
     private var allStars: [Star] {
         constellations.flatMap(\.stars)
+    }
+
+    private var hasRecordedSession: Bool {
+        !recentlyExploredStars.isEmpty
     }
 
     private var recentlyExploredStars: [Star] {
@@ -34,99 +39,102 @@ struct HomeView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            AmbientSkyView(constellations: constellations, autoPan: true)
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            let telescopeMaxWidth = max(160, min(640, geometry.size.width - 560))
 
-            TelescopeView {
-                appState.route = .discovery
-            }
-            .frame(maxWidth: 640)
+            ZStack(alignment: .bottomLeading) {
+                AmbientSkyView(constellations: constellations, autoPan: true)
+                    .ignoresSafeArea()
 
-            HStack(alignment: .top, spacing: 40) {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("Hello, there.")
-                        .font(.system(size: 33, weight: .bold))
-                        .foregroundStyle(Color.starrlyOffWhite)
+                TelescopeView {
+                    appState.route = .discovery
+                }
+                .frame(maxWidth: telescopeMaxWidth)
 
-                    (
-                        Text("Welcome to ")
-                        + Text("Starrly").fontWeight(.semibold)
-                        + Text("! Here, you light up the night sky.")
-                    )
-                    .font(.system(size: 19))
-                    .foregroundStyle(Color.starrlyOffWhite)
+                HStack(alignment: .top, spacing: 40) {
+                    VStack(alignment: .leading, spacing: 20) {
+                        Text("Welcome to Starrly!")
+                            .font(.system(size: 33, weight: .bold))
+                            .foregroundStyle(Color.starrlyOffWhite)
 
-                    VStack(alignment: .leading, spacing: 16) {
-                        if isExistingUser {
+                        VStack(alignment: .leading, spacing: 16) {
+                            if isExistingUser {
+                                Button {
+                                    appState.route = .explore
+                                } label: {
+                                    Text("Explore")
+                                        .font(.system(size: 27, weight: .semibold))
+                                        .frame(width: 280, height: 60)
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(Color.starrlyOffWhite)
+                                .glassEffect(.starrly, in: RoundedRectangle(cornerRadius: 24))
+                            }
+
                             Button {
-                                appState.route = .explore
+                                appState.route = .discovery
                             } label: {
-                                Text("Explore")
+                                Text("Discover")
                                     .font(.system(size: 27, weight: .semibold))
                                     .frame(width: 280, height: 60)
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                             .foregroundStyle(Color.starrlyOffWhite)
-                            .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
+                            .glassEffect(.starrly, in: RoundedRectangle(cornerRadius: 24))
+                            .popoverTip(TelescopeTip(), arrowEdge: .trailing)
                         }
 
-                        Button {
-                            appState.route = .discovery
-                        } label: {
-                            Text("Discover")
-                                .font(.system(size: 27, weight: .semibold))
-                                .frame(width: 280, height: 60)
+                        Spacer()
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 20) {
+                        HStack(spacing: 20) {
+                            HomeStatsPanel(
+                                constellationCount: constellations.count,
+                                starCount: allStars.count
+                            )
+
+                            MoonPhasePanel()
+                                .frame(width: 160, height: 160)
+                        }
+                        .padding(24)
+                        .frame(width: 480, height: 240)
+                        .glassEffect(.starrly, in: RoundedRectangle(cornerRadius: 24))
+                        .contentShape(Rectangle())
+                        .onTapGesture {}
+
+                        if hasRecordedSession {
+                            RecentlyExploredPanel(stars: recentlyExploredStars)
+                                .padding(24)
+                                .frame(width: 480, height: 360)
+                                .glassEffect(.starrly, in: RoundedRectangle(cornerRadius: 24))
                                 .contentShape(Rectangle())
+                                .onTapGesture {}
+
+                            Text("Discover thyself, discover the universe.")
+                                .font(.system(size: 13))
+                                .italic()
+                                .foregroundStyle(Color.starrlyOffWhite)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        } else {
+                            GettingStartedPanel()
+                                .padding(24)
+                                .frame(width: 480, height: 360)
+                                .glassEffect(.starrly, in: RoundedRectangle(cornerRadius: 24))
+                                .contentShape(Rectangle())
+                                .onTapGesture {}
                         }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(Color.starrlyOffWhite)
-                        .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
-                    }
 
-                    Spacer()
+                        Spacer()
+                    }
+                    .frame(maxWidth: 480)
                 }
-
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 20) {
-                    HStack(spacing: 20) {
-                        HomeStatsPanel(
-                            constellationCount: constellations.count,
-                            starCount: allStars.count
-                        )
-
-                        MoonPhasePanel()
-                            .frame(width: 160, height: 160)
-                    }
-                    .padding(24)
-                    .frame(width: 480, height: 240)
-                    .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
-
-                    if isExistingUser {
-                        RecentlyExploredPanel(stars: recentlyExploredStars)
-                            .padding(24)
-                            .frame(width: 480, height: 360)
-                            .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
-
-                        Text("Discover thyself, discover the universe.")
-                            .font(.system(size: 13))
-                            .italic()
-                            .foregroundStyle(Color.starrlyOffWhite)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    } else {
-                        Text("Learn something new to discover a constellation, and add new stars by identifying skills to work on. The more you practice, the brighter they glow!")
-                            .foregroundStyle(Color.starrlyOffWhite)
-                            .padding(24)
-                            .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
-                    }
-
-                    Spacer()
-                }
-                .frame(maxWidth: 480)
+                .padding(40)
             }
-            .padding(40)
         }
     }
 }

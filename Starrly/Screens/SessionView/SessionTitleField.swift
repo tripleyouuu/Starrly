@@ -20,6 +20,7 @@ struct SessionTitleField: View {
                 .multilineTextAlignment(.center)
                 .font(.system(size: 33, weight: .bold))
                 .foregroundStyle(Color.starrlyOffWhite)
+                .lineLimit(1)
                 .focused($isFocused)
                 .onAppear {
                     draft = title
@@ -33,6 +34,8 @@ struct SessionTitleField: View {
             Text(title)
                 .font(.system(size: 33, weight: .bold))
                 .foregroundStyle(Color.starrlyOffWhite)
+                .lineLimit(1)
+                .truncationMode(.tail)
                 .onTapGesture {
                     isEditing = true
                 }

@@ -29,7 +29,7 @@ struct NameConstellationStep: View {
                     .font(.system(size: 27, weight: .semibold))
                     .foregroundStyle(Color.starrlyOffWhite)
                     .frame(width: 640, height: 80)
-                    .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
+                    .glassEffect(.starrly, in: RoundedRectangle(cornerRadius: 24))
                     .focused($isNameFocused)
                     .onSubmit(submit)
             }

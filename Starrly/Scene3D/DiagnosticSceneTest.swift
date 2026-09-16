@@ -1,3 +1,10 @@
+//
+//  DiagnosticSceneTest.swift
+//  Starrly
+//
+//  Created by Vitha Watson on 14/09/26.
+//
+
 import SwiftUI
 import RealityKit
 import AppKit

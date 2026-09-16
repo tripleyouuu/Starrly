@@ -23,6 +23,7 @@ enum ConstellationSceneBuilder {
             }
 
             var starPositions: [UUID: SIMD3<Float>] = [:]
+            var starEntities: [Entity] = []
 
             for star in constellation.stars {
                 let worldPosition = SkyProjection.starWorldPosition(
@@ -30,19 +31,28 @@ enum ConstellationSceneBuilder {
                     constellationCentroid: placement.position,
                     localOrigin: placement.localOrigin,
                     radius: 490,
-                    spreadScale: placement.spreadScale
+                    spreadScale: placement.spreadScale,
+                    pitchBand: placement.pitchBand
                 )
                 starPositions[star.id] = worldPosition
 
                 let starEntity = await StarBillboardEntity.make(star: star, sizeScale: scale)
                 starEntity.position = worldPosition
-                content.add(starEntity)
+                starEntities.append(starEntity)
             }
 
+            // Lines are added to the scene before stars (not just positioned behind them) because
+            // RealityKit orders overlapping transparent/blended geometry by submission order as
+            // well as depth — adding stars second ensures they always draw on top of the lines
+            // passing through them.
             let orderedStars = ConstellationPathBuilder.orderedConnectedStars(from: constellation.stars)
             for (previous, current) in zip(orderedStars, orderedStars.dropFirst()) {
                 guard let start = starPositions[previous.id], let end = starPositions[current.id] else { continue }
                 content.add(ConstellationLineEntity.make(from: start, to: end))
+            }
+
+            for starEntity in starEntities {
+                content.add(starEntity)
             }
         }
     }

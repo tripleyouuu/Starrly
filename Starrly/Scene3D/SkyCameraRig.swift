@@ -17,8 +17,11 @@ final class SkyCameraRig {
     private(set) var pitch: Double = SkyCameraRig.defaultPitch
     private(set) var fieldOfView: Double = SkyCameraRig.defaultFieldOfView
 
-    static let minPitch: Double = 0
-    static let maxPitch: Double = 55
+    private var minPitch: Double = SkyCameraRig.defaultMinPitch
+    private var maxPitch: Double = SkyCameraRig.defaultMaxPitch
+
+    static let defaultMinPitch: Double = 0
+    static let defaultMaxPitch: Double = 55
     static let defaultPitch: Double = 35
     static let defaultFieldOfView: Double = 60
     static let zoomedFieldOfView: Double = 35
@@ -36,9 +39,16 @@ final class SkyCameraRig {
         updateOrientation()
     }
 
+    func setPitchBounds(_ range: ClosedRange<Double>) {
+        minPitch = range.lowerBound
+        maxPitch = range.upperBound
+        pitch = clampPitch(pitch)
+        updateOrientation()
+    }
+
     func setInitial(yaw: Double, pitch: Double) {
         self.yaw = yaw
-        self.pitch = min(max(pitch, Self.minPitch), Self.maxPitch)
+        self.pitch = clampPitch(pitch)
         updateOrientation()
     }
 
@@ -50,11 +60,10 @@ final class SkyCameraRig {
     func pan(deltaYaw: Double, deltaPitch: Double) {
         cancelAnimation()
         yaw += deltaYaw
-        pitch = min(max(pitch + deltaPitch, Self.minPitch), Self.maxPitch)
+        pitch = clampPitch(pitch + deltaPitch)
         updateOrientation()
     }
 
-    /// Advances yaw by a small step without disturbing any in-flight animation state, for continuous auto-pan.
     func autoPanStep(deltaYaw: Double) {
         yaw += deltaYaw
         updateOrientation()
@@ -66,7 +75,7 @@ final class SkyCameraRig {
     }
 
     func startAnimating(toYaw targetYaw: Double, pitch targetPitch: Double, fieldOfView targetFieldOfView: Double? = nil) {
-        let clampedTargetPitch = min(max(targetPitch, Self.minPitch), Self.maxPitch)
+        let clampedTargetPitch = clampPitch(targetPitch)
         let rawDelta = (targetYaw - yaw).truncatingRemainder(dividingBy: 360)
         let shortestDelta = rawDelta > 180 ? rawDelta - 360 : (rawDelta < -180 ? rawDelta + 360 : rawDelta)
 
@@ -96,6 +105,10 @@ final class SkyCameraRig {
         if t >= 1 {
             cancelAnimation()
         }
+    }
+
+    private func clampPitch(_ value: Double) -> Double {
+        min(max(value, minPitch), maxPitch)
     }
 
     private func updateOrientation() {

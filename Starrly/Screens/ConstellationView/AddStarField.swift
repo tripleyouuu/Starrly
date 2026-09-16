@@ -25,7 +25,7 @@ struct AddStarField: View {
                 .focused($isFocused)
                 .padding(.horizontal, 24)
                 .frame(maxWidth: 560, maxHeight: 80)
-                .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
+                .glassEffect(.starrly, in: RoundedRectangle(cornerRadius: 24))
                 .onSubmit(submit)
 
             Button(action: submit) {

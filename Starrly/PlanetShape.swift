@@ -5,7 +5,6 @@
 //  Created by Vitha Watson on 14/09/26.
 //
 
-
 enum PlanetShape: Int, Codable, CaseIterable {
     case one
     case two

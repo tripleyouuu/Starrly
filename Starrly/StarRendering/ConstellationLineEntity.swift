@@ -15,9 +15,14 @@ enum ConstellationLineEntity {
         let delta = end - start
         let distance = simd_length(delta)
 
-        let mesh = MeshResource.generateCylinder(height: distance, radius: 0.5)
+        let mesh = MeshResource.generateCylinder(height: distance, radius: 0.25)
         var material = UnlitMaterial()
         material.color = .init(tint: .white)
+        // Doesn't write depth, so it can never occlude the stars it connects — with depth writes
+        // off, visual stacking among non-depth-writing elements falls back to submission order,
+        // which is reliable at the ~490-unit range these all render at (actual depth differences
+        // of a few hundredths of a unit are too small for the depth buffer to resolve there).
+        material.writesDepth = false
         let entity = ModelEntity(mesh: mesh, materials: [material])
 
         entity.position = (start + end) / 2

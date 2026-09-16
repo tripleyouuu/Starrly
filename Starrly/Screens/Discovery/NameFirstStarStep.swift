@@ -20,7 +20,7 @@ struct NameFirstStarStep: View {
                 .frame(maxHeight: .infinity, alignment: .top)
 
             VStack(spacing: 20) {
-                Text("To start exploring, define your first star here.")
+                StreamingText(text: "To start exploring, define your first star here.")
                     .font(.system(size: 21, weight: .semibold))
                     .foregroundStyle(Color.starrlyOffWhite)
 

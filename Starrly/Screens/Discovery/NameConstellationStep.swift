@@ -19,7 +19,7 @@ struct NameConstellationStep: View {
                 .frame(maxHeight: .infinity, alignment: .top)
 
             VStack(spacing: 20) {
-                Text("You've found a new constellation! Give it a name.")
+                StreamingText(text: "You've found a new constellation! Give it a name.")
                     .font(.system(size: 21, weight: .semibold))
                     .foregroundStyle(Color.starrlyOffWhite)
 

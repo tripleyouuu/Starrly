@@ -14,6 +14,7 @@ enum ExploreLayoutEngine {
     static let maxPitch: Double = 40
     static let minSpreadScale: Double = 0.05
     static let maxSpreadScale: Double = 1.2
+    private static let maxLineAngularSpan: Double = 12
     private static let yawGapDegrees: Double = 16
     private static let maxPerRow = 10
     private static let maxRows = 3
@@ -94,7 +95,20 @@ enum ExploreLayoutEngine {
             }
             let yRange = max(maxY - minY, 1)
             let xRange = max(maxX - minX, 1)
-            let scale = min(maxSpreadScale, max(minSpreadScale, verticalSpan / yRange))
+            var scale = min(maxSpreadScale, max(minSpreadScale, verticalSpan / yRange))
+
+            let connectedStars = ConstellationPathBuilder.orderedConnectedStars(from: constellation.stars)
+            let maxSegmentLength = zip(connectedStars, connectedStars.dropFirst())
+                .map { star1, star2 -> Double in
+                    let dx = Double(star1.localPosition.x - star2.localPosition.x)
+                    let dy = Double(star1.localPosition.y - star2.localPosition.y)
+                    return (dx * dx + dy * dy).squareRoot()
+                }
+                .max() ?? 0
+            if maxSegmentLength > 0 {
+                scale = max(minSpreadScale, min(scale, maxLineAngularSpan / maxSegmentLength))
+            }
+
             let origin = CGPoint(x: (minX + maxX) / 2, y: (minY + maxY) / 2)
             return Metric(id: constellation.id, spreadScale: scale, angularWidth: xRange * scale, localOrigin: origin)
         }

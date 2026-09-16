@@ -14,6 +14,7 @@ struct ConstellationView: View {
     let returnTo: Route
 
     @Environment(AppState.self) private var appState
+    @Environment(SoundPlayer.self) private var soundPlayer
     @Query private var constellations: [Constellation]
     @Query private var allConstellations: [Constellation]
 
@@ -79,6 +80,7 @@ struct ConstellationView: View {
         let star = Star(name: name, color: color, localPosition: position)
         star.constellation = constellation
         constellation.stars.append(star)
+        soundPlayer.playRandomChime()
     }
 
     private func selectStar(_ star: Star) {

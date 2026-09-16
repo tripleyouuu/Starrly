@@ -11,6 +11,7 @@ import SwiftData
 struct DiscoveryFlowView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
+    @Environment(SoundPlayer.self) private var soundPlayer
     @Query private var allConstellations: [Constellation]
     @State private var constellationName: String?
 
@@ -47,6 +48,7 @@ struct DiscoveryFlowView: View {
         constellation.stars.append(star)
 
         modelContext.insert(constellation)
+        soundPlayer.playRandomChime()
 
         appState.route = .constellation(constellation.id, returnTo: .home)
     }

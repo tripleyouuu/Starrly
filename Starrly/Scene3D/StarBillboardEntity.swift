@@ -10,7 +10,7 @@ import AppKit
 import SwiftUI
 
 enum StarBillboardEntity {
-    static func make(star: Star, sizeScale: Double = 1.0) async -> Entity {
+    static func make(star: Star, sizeScale: Double = 1.0, animates: Bool = true) async -> Entity {
         let root = Entity()
         root.name = "star:\(star.id.uuidString)"
         root.components.set(BillboardComponent())
@@ -67,15 +67,17 @@ enum StarBillboardEntity {
         // Deferred to the next run-loop turn: the caller adds `root` to the scene immediately
         // after this function returns, and animations played before an entity is scene-attached
         // don't reliably start.
-        DispatchQueue.main.async {
-            // All of a neutron star's beam/halo motion — and the giant/supernova rotation — is
-            // started here in the same synchronous pass, so every animation's clock originates
-            // from the exact same instant and the 4s/4s halves stay phase-locked to each other.
-            for pivot in rotationPivots {
-                animateRotation(pivot, duration: StarMotionSpec.rotationDuration)
-            }
-            for layer in scalingLayers {
-                animateScale(layer.entity, baseScale: layer.baseScale, targetMultiplier: layer.targetMultiplier, duration: StarMotionSpec.pulseDuration)
+        if animates {
+            DispatchQueue.main.async {
+                // All of a neutron star's beam/halo motion — and the giant/supernova rotation — is
+                // started here in the same synchronous pass, so every animation's clock originates
+                // from the exact same instant and the 4s/4s halves stay phase-locked to each other.
+                for pivot in rotationPivots {
+                    animateRotation(pivot, duration: StarMotionSpec.rotationDuration)
+                }
+                for layer in scalingLayers {
+                    animateScale(layer.entity, baseScale: layer.baseScale, targetMultiplier: layer.targetMultiplier, duration: StarMotionSpec.pulseDuration)
+                }
             }
         }
 

@@ -12,6 +12,8 @@ import TipKit
 
 struct ExploreView: View {
     @Environment(AppState.self) private var appState
+    @Environment(AppSettings.self) private var settings
+    @Environment(SoundPlayer.self) private var soundPlayer
     @Query private var constellations: [Constellation]
 
     @State private var cameraRig = SkyCameraRig()
@@ -41,7 +43,7 @@ struct ExploreView: View {
                             content.camera = .virtual
                             content.add(cameraRig.rigEntity)
                             content.add(await SkySphereEntity.make())
-                            await ConstellationSceneBuilder.populate(content: content, constellations: constellations, includeHitVolumes: false)
+                            await ConstellationSceneBuilder.populate(content: content, constellations: constellations, includeHitVolumes: false, animatesStars: settings.isMotionEnabled)
                             cameraContent = content
                         } update: { content in
                             cameraContent = content
@@ -118,6 +120,7 @@ struct ExploreView: View {
         }
         guard let placement = ExploreLayoutEngine.layout(for: constellations)[constellation.id] else { return }
         centeredConstellationID = constellation.id
+        soundPlayer.playRandomReveal()
         // SkyProjection places world objects using the opposite yaw sign convention
         // from how SkyCameraRig actually orients the camera — negate to compensate.
         cameraRig.startAnimating(
@@ -138,7 +141,8 @@ struct ExploreView: View {
         cameraRig.tick(at: now)
         defer { lastTickDate = now }
 
-        let isPaused = centeredConstellationID != nil
+        let isPaused = !settings.isMotionEnabled
+            || centeredConstellationID != nil
             || cameraRig.isAnimating
             || now.timeIntervalSince(lastManualPanAt) < Self.manualPanPauseDuration
 

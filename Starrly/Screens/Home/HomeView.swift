@@ -12,6 +12,8 @@ import TipKit
 struct HomeView: View {
     @Query private var constellations: [Constellation]
     @Environment(AppState.self) private var appState
+    @Environment(AppSettings.self) private var settings
+    @Environment(SoundPlayer.self) private var soundPlayer
 
     private var isExistingUser: Bool {
         !constellations.isEmpty
@@ -53,7 +55,7 @@ struct HomeView: View {
 
                 HStack(alignment: .top, spacing: 40) {
                     VStack(alignment: .leading, spacing: 20) {
-                        Text("Welcome to Starrly!")
+                        StreamingText(text: "Welcome to Starrly!")
                             .font(.system(size: 33, weight: .bold))
                             .foregroundStyle(Color.starrlyOffWhite)
 
@@ -134,7 +136,38 @@ struct HomeView: View {
                     .frame(maxWidth: 480)
                 }
                 .padding(40)
+
+                settingsButtons
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .padding(40)
             }
+        }
+    }
+
+    private var settingsButtons: some View {
+        HStack(spacing: 16) {
+            Button {
+                settings.isSoundEnabled.toggle()
+                soundPlayer.applySoundEnabled()
+            } label: {
+                Image(systemName: settings.isSoundEnabled ? "music.note" : "music.note.slash")
+                    .foregroundStyle(Color.starrlyOffWhite)
+                    .frame(width: 48, height: 48)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .glassEffect(.starrly.interactive(), in: .circle)
+
+            Button {
+                settings.isMotionEnabled.toggle()
+            } label: {
+                Image(systemName: settings.isMotionEnabled ? "figure.walk.motion" : "figure.walk")
+                    .foregroundStyle(Color.starrlyOffWhite)
+                    .frame(width: 48, height: 48)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .glassEffect(.starrly.interactive(), in: .circle)
         }
     }
 }

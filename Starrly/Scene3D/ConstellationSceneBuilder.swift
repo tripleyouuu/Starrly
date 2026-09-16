@@ -10,7 +10,7 @@ import RealityKit
 import SwiftUI
 
 enum ConstellationSceneBuilder {
-    static func populate(content: some RealityViewContentProtocol, constellations: [Constellation], includeHitVolumes: Bool) async {
+    static func populate(content: some RealityViewContentProtocol, constellations: [Constellation], includeHitVolumes: Bool, animatesStars: Bool = true) async {
         let scale = ExploreLayoutEngine.densityScale(for: constellations.count)
         let placements = ExploreLayoutEngine.layout(for: constellations)
 
@@ -36,7 +36,7 @@ enum ConstellationSceneBuilder {
                 )
                 starPositions[star.id] = worldPosition
 
-                let starEntity = await StarBillboardEntity.make(star: star, sizeScale: scale)
+                let starEntity = await StarBillboardEntity.make(star: star, sizeScale: scale, animates: animatesStars)
                 starEntity.position = worldPosition
                 starEntities.append(starEntity)
             }

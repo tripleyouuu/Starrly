@@ -14,6 +14,7 @@ struct AmbientSkyView: View {
     var isBlurred: Bool = false
     var autoPan: Bool = false
 
+    @Environment(AppSettings.self) private var settings
     @State private var rig = SkyCameraRig()
     @State private var startDate = Date()
 
@@ -27,10 +28,10 @@ struct AmbientSkyView: View {
                 content.add(rig.rigEntity)
                 content.add(await SkySphereEntity.make())
 
-                await ConstellationSceneBuilder.populate(content: content, constellations: constellations, includeHitVolumes: false)
+                await ConstellationSceneBuilder.populate(content: content, constellations: constellations, includeHitVolumes: false, animatesStars: settings.isMotionEnabled)
             }
             .onChange(of: timeline.date) { _, newDate in
-                guard autoPan else { return }
+                guard autoPan, settings.isMotionEnabled else { return }
                 let elapsed = newDate.timeIntervalSince(startDate)
                 rig.setYaw(elapsed * panDegreesPerSecond)
             }

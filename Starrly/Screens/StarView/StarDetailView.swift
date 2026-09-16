@@ -15,6 +15,7 @@ struct StarDetailView: View {
 
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
+    @Environment(SoundPlayer.self) private var soundPlayer
     @Query private var stars: [Star]
     @Query private var allConstellations: [Constellation]
 
@@ -106,6 +107,7 @@ struct StarDetailView: View {
             }
         }
         modelContext.insert(session)
+        soundPlayer.playRandomReveal()
         appState.route = .session(session.id, starReturnTo: .star(starID, returnTo: returnTo))
     }
 

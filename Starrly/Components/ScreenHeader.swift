@@ -18,7 +18,7 @@ struct ScreenHeader: View {
                 Spacer()
             }
 
-            Text(title)
+            StreamingText(text: title)
                 .font(.system(size: 33, weight: .bold))
                 .foregroundStyle(Color.starrlyOffWhite)
                 .lineLimit(1)

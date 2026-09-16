@@ -9,11 +9,11 @@
 import SwiftUI
 import AVKit
 
-private let carouselHeight: CGFloat = 360
 private let fallbackAspectRatio: CGFloat = 16.0 / 9.0
 
 struct MediaCarousel: View {
     let filenames: [String]
+    var height: CGFloat = 360
     let onRemove: (String) -> Void
 
     @State private var selectedFilename: String?
@@ -53,18 +53,18 @@ struct MediaCarousel: View {
                 Spacer(minLength: 0)
             }
         }
-        .frame(height: carouselHeight)
+        .frame(height: height)
     }
 
     @ViewBuilder
     private func itemView(for filename: String) -> some View {
         let url = MediaStorage.url(for: filename)
         if isVideo(url) {
-            let width = carouselHeight * (aspectRatios[filename] ?? fallbackAspectRatio)
+            let width = height * (aspectRatios[filename] ?? fallbackAspectRatio)
 
             if playingFilename == filename, let activePlayer {
                 VideoPlayer(player: activePlayer)
-                    .frame(width: width, height: carouselHeight)
+                    .frame(width: width, height: height)
                     .clipped()
             } else {
                 ZStack {
@@ -72,11 +72,11 @@ struct MediaCarousel: View {
                         Image(nsImage: thumbnail)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: width, height: carouselHeight)
+                            .frame(width: width, height: height)
                             .clipped()
                     } else {
-                        Color.starrlyBlue.opacity(0.2)
-                            .frame(width: width, height: carouselHeight)
+                        Color.starrlyBackground.opacity(0.2)
+                            .frame(width: width, height: height)
                     }
 
                     Image(systemName: "play.fill")
@@ -85,7 +85,7 @@ struct MediaCarousel: View {
                         .padding(22)
                         .background(Circle().fill(Color.black.opacity(0.4)))
                 }
-                .frame(width: width, height: carouselHeight)
+                .frame(width: width, height: height)
                 .task(id: filename) {
                     guard thumbnails[filename] == nil else { return }
                     let info = await Self.loadVideoInfo(for: url)
@@ -99,7 +99,7 @@ struct MediaCarousel: View {
             Image(nsImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(height: carouselHeight)
+                .frame(height: height)
         }
     }
 

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import TipKit
 
 struct StarDetailView: View {
     let starID: UUID
@@ -16,6 +17,8 @@ struct StarDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var stars: [Star]
     @Query private var allConstellations: [Constellation]
+
+    private static let mapHideThreshold: CGFloat = 900
 
     init(starID: UUID, returnTo: Route) {
         self.starID = starID
@@ -33,58 +36,58 @@ struct StarDetailView: View {
             AmbientSkyView(constellations: allConstellations, isBlurred: true, autoPan: true)
                 .ignoresSafeArea()
 
-            ZStack {
-                ZStack {
-                    HStack {
-                        BackButton(action: { appState.route = returnTo })
-                        Spacer()
-                    }
-
-                    Text(star?.name ?? "")
-                        .font(.system(size: 33, weight: .bold))
-                        .foregroundStyle(Color.starrlyOffWhite)
-                }
-                .frame(maxHeight: .infinity, alignment: .top)
+            VStack(spacing: 40) {
+                ScreenHeader(title: star?.name ?? "", onBack: { appState.route = returnTo })
 
                 if let star {
-                    HStack(alignment: .top, spacing: 40) {
-                        OrbitMapView(star: star, onSelect: selectSession)
-                            .frame(maxWidth: 640, maxHeight: 720)
-                            .glassEffect(.clear, in: RoundedRectangle(cornerRadius: 24))
+                    GeometryReader { geometry in
+                        let showsMap = geometry.size.width >= Self.mapHideThreshold
 
-                        VStack(alignment: .leading, spacing: 40) {
-                            HStack {
-                                Text("Add Planet…")
-                                    .font(.system(size: 27, weight: .semibold))
-                                    .foregroundStyle(Color.starrlyOffWhite)
-
-                                Spacer()
-
-                                Button {
-                                    recordSession()
-                                } label: {
-                                    Text("Record Session")
-                                        .font(.system(size: 27, weight: .semibold))
-                                        .frame(width: 280, height: 60)
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .foregroundStyle(Color.starrlyOffWhite)
-                                .glassEffect(.starrly.interactive(), in: RoundedRectangle(cornerRadius: 24))
-
-                                Spacer()
+                        HStack(alignment: .top, spacing: 60) {
+                            if showsMap {
+                                OrbitMapView(star: star, onSelect: selectSession)
+                                    .frame(width: min(640, geometry.size.width * 0.45))
+                                    .frame(maxHeight: .infinity)
+                                    .glassEffect(.starrly, in: RoundedRectangle(cornerRadius: 24))
+                                    .popoverTip(StarMapTip(), arrowEdge: .trailing)
+                                    .task { await watchMapTipDismissal() }
                             }
 
-                            Rectangle()
-                                .fill(Color.starrlyOffWhite)
-                                .frame(maxWidth: 780, maxHeight: 1)
+                            VStack(alignment: .leading, spacing: 40) {
+                                HStack {
+                                    Text("Add Planet…")
+                                        .font(.system(size: 27, weight: .semibold))
+                                        .foregroundStyle(Color.starrlyOffWhite)
 
-                            MemberPlanetsList(sessions: star.sessions, onSelect: selectSession)
-                                .frame(maxWidth: 780, maxHeight: .infinity, alignment: .top)
+                                    Spacer()
+
+                                    Button {
+                                        recordSession()
+                                    } label: {
+                                        Text("Record Session")
+                                            .font(.system(size: 27, weight: .semibold))
+                                            .frame(width: 280, height: 60)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    .foregroundStyle(Color.starrlyOffWhite)
+                                    .glassEffect(.starrly.interactive(), in: RoundedRectangle(cornerRadius: 24))
+                                    .popoverTip(RecordSessionTip(), arrowEdge: .top)
+
+                                    Spacer()
+                                }
+                                .frame(maxWidth: 720)
+
+                                Rectangle()
+                                    .fill(Color.starrlyOffWhite)
+                                    .frame(maxWidth: 720, maxHeight: 1)
+
+                                MemberPlanetsList(sessions: star.sessions, onSelect: selectSession)
+                                    .frame(maxWidth: 720, maxHeight: .infinity, alignment: .top)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                         }
-                        .frame(maxWidth: .infinity, maxHeight: 720)
                     }
-                    .padding(.top, 40)
                 }
             }
             .padding(40)
@@ -108,5 +111,14 @@ struct StarDetailView: View {
 
     private func selectSession(_ session: Session) {
         appState.route = .session(session.id, starReturnTo: .star(starID, returnTo: returnTo))
+    }
+
+    private func watchMapTipDismissal() async {
+        for await status in StarMapTip().statusUpdates {
+            if case .invalidated = status {
+                await StarMapTip.dismissedEvent.donate()
+                return
+            }
+        }
     }
 }

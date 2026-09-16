@@ -15,19 +15,68 @@ enum ExploreLayoutEngine {
     static let minSpreadScale: Double = 0.05
     static let maxSpreadScale: Double = 1.2
     private static let yawGapDegrees: Double = 16
+    private static let maxPerRow = 10
+    private static let maxRows = 3
+    private static let rowBandWidth: Double = 20
 
     struct Placement {
         let position: SkyPosition
         let spreadScale: Double
         let localOrigin: CGPoint
+        let pitchBand: ClosedRange<Double>
     }
 
     static func layout(for constellations: [Constellation]) -> [UUID: Placement] {
         let ordered = constellations.sorted { $0.createdAt < $1.createdAt }
         guard !ordered.isEmpty else { return [:] }
 
-        let midPitch = (minPitch + maxPitch) / 2
-        let verticalSpan = maxPitch - minPitch
+        let rowCount = rowCount(forConstellationCount: ordered.count)
+        let gap = rowGap(forRowCount: rowCount)
+        let topEdge = overallPitchRange(forRowCount: rowCount).upperBound
+
+        var placements: [UUID: Placement] = [:]
+        for (rowIndex, rowConstellations) in splitEvenly(ordered, into: rowCount).enumerated() {
+            let rowTop = topEdge - Double(rowIndex) * (rowBandWidth + gap)
+            let rowBottom = rowTop - rowBandWidth
+            let pitchBand = rowBottom...rowTop
+            placements.merge(layoutRow(rowConstellations, pitchBand: pitchBand)) { _, new in new }
+        }
+        return placements
+    }
+    static func overallPitchRange(constellationCount: Int) -> ClosedRange<Double> {
+        overallPitchRange(forRowCount: rowCount(forConstellationCount: constellationCount))
+    }
+
+    static func densityScale(for constellationCount: Int) -> Double {
+        max(0.4, 1.0 / Double(max(constellationCount, 1)).squareRoot())
+    }
+
+    private static func rowCount(forConstellationCount count: Int) -> Int {
+        guard count > 0 else { return 1 }
+        return min(maxRows, max(1, Int(ceil(Double(count) / Double(maxPerRow)))))
+    }
+
+    private static func overallPitchRange(forRowCount rowCount: Int) -> ClosedRange<Double> {
+        switch rowCount {
+        case 1: return minPitch...maxPitch
+        case 2: return 20...70
+        default: return 10...80
+        }
+    }
+
+    private static func rowGap(forRowCount rowCount: Int) -> Double {
+        switch rowCount {
+        case 2: return 10
+        case 3: return 5
+        default: return 0
+        }
+    }
+
+    private static func layoutRow(_ ordered: [Constellation], pitchBand: ClosedRange<Double>) -> [UUID: Placement] {
+        guard !ordered.isEmpty else { return [:] }
+
+        let midPitch = (pitchBand.lowerBound + pitchBand.upperBound) / 2
+        let verticalSpan = pitchBand.upperBound - pitchBand.lowerBound
 
         struct Metric {
             let id: UUID
@@ -63,14 +112,25 @@ enum ExploreLayoutEngine {
             placements[metric.id] = Placement(
                 position: SkyPosition(yaw: yaw, pitch: midPitch),
                 spreadScale: metric.spreadScale * shrink,
-                localOrigin: metric.localOrigin
+                localOrigin: metric.localOrigin,
+                pitchBand: pitchBand
             )
             yawCursor += width + gap
         }
         return placements
     }
 
-    static func densityScale(for constellationCount: Int) -> Double {
-        max(0.4, 1.0 / Double(max(constellationCount, 1)).squareRoot())
+    private static func splitEvenly<T>(_ items: [T], into parts: Int) -> [[T]] {
+        guard parts > 1 else { return [items] }
+        let base = items.count / parts
+        let remainder = items.count % parts
+        var result: [[T]] = []
+        var index = 0
+        for rowIndex in 0..<parts {
+            let count = base + (rowIndex < remainder ? 1 : 0)
+            result.append(Array(items[index..<(index + count)]))
+            index += count
+        }
+        return result
     }
 }

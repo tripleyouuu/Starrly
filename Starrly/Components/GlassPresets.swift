@@ -9,6 +9,6 @@ import SwiftUI
 
 extension Glass {
     static var starrly: Glass {
-        .regular.tint(Color.starrlyBlue.opacity(0.2))
+        .clear.tint(Color.starrlyBackground.opacity(0.2))
     }
 }

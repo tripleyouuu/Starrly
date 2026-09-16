@@ -116,7 +116,7 @@ struct ConstellationMapView: View {
                         .padding(.vertical, 6)
                         .fixedSize()
                         .contentShape(Capsule())
-                        .glassEffect(.clear.interactive(), in: .capsule)
+                        .glassEffect(.starrly.interactive(), in: .capsule)
                         .position(x: screenPoint.x, y: screenPoint.y - 24)
                         .onTapGesture {
                             onSelect(star)

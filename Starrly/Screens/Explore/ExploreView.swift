@@ -8,6 +8,7 @@
 import SwiftUI
 import RealityKit
 import SwiftData
+import TipKit
 
 struct ExploreView: View {
     @Environment(AppState.self) private var appState
@@ -15,7 +16,6 @@ struct ExploreView: View {
 
     @State private var cameraRig = SkyCameraRig()
     @State private var lastDragTranslation: CGSize = .zero
-    @State private var sceneResetToken = UUID()
     @State private var centeredConstellationID: UUID?
     @State private var capsuleScreenPoints: [UUID: CGPoint] = [:]
     @State private var lastManualPanAt: Date = .distantPast
@@ -26,12 +26,17 @@ struct ExploreView: View {
     private static let autoPanDegreesPerSecond: Double = 1.5
     private static let manualPanPauseDuration: TimeInterval = 5
 
+    private var firstConstellationID: UUID? {
+        constellations.min(by: { $0.createdAt < $1.createdAt })?.id
+    }
+
     var body: some View {
         ZStack {
             GeometryReader { geometry in
                 TimelineView(.animation) { timeline in
                     ZStack {
                         RealityView { content in
+                            cameraRig.setPitchBounds(ExploreLayoutEngine.overallPitchRange(constellationCount: constellations.count))
                             cameraRig.setInitial(yaw: 0, pitch: SkyCameraRig.defaultPitch)
                             content.camera = .virtual
                             content.add(cameraRig.rigEntity)
@@ -43,7 +48,6 @@ struct ExploreView: View {
                         }
                         .gesture(dragGesture, including: centeredConstellationID == nil ? .all : .none)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .id(sceneResetToken)
                         .onChange(of: timeline.date) { _, newDate in
                             tick(at: newDate)
                             updateCapsulePoints(viewportSize: geometry.size)
@@ -67,8 +71,7 @@ struct ExploreView: View {
 
             ExploreOverlayUI(
                 onBack: { appState.route = .home },
-                onDiscover: { appState.route = .discovery },
-                onResetLayout: resetLayout
+                onDiscover: { appState.route = .discovery }
             )
         }
     }
@@ -91,17 +94,18 @@ struct ExploreView: View {
         HStack(spacing: 6) {
             Text(constellation.name)
                 .lineLimit(1)
-                .frame(maxWidth: 140, alignment: .leading)
+                .frame(maxWidth: 240, alignment: .leading)
 
             Image(systemName: "chevron.right")
         }
-        .font(.system(size: 13, weight: .regular))
+        .font(.system(size: 16, weight: .regular))
         .foregroundStyle(Color.starrlyOffWhite)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .fixedSize()
-        .glassEffect(.clear.interactive(), in: .capsule)
+        .glassEffect(.starrly.interactive(), in: .capsule)
         .position(screenPoint)
+        .popoverTip(constellation.id == firstConstellationID ? ExploreCapsuleTip() : nil, arrowEdge: .bottom)
         .onTapGesture {
             handleCapsuleTap(constellation)
         }
@@ -130,6 +134,7 @@ struct ExploreView: View {
     }
 
     private func tick(at now: Date) {
+        cameraRig.setPitchBounds(ExploreLayoutEngine.overallPitchRange(constellationCount: constellations.count))
         cameraRig.tick(at: now)
         defer { lastTickDate = now }
 
@@ -156,7 +161,8 @@ struct ExploreView: View {
                     constellationCentroid: placement.position,
                     localOrigin: placement.localOrigin,
                     radius: Self.sphereRadius,
-                    spreadScale: placement.spreadScale
+                    spreadScale: placement.spreadScale,
+                    pitchBand: placement.pitchBand
                 )
             }
             guard !starWorldPositions.isEmpty else { continue }
@@ -178,15 +184,5 @@ struct ExploreView: View {
 
     private func isWithinViewport(point: CGPoint, size: CGSize) -> Bool {
         point.x >= 0 && point.x <= size.width && point.y >= 0 && point.y <= size.height
-    }
-
-    private func resetLayout() {
-        cameraRig = SkyCameraRig()
-        sceneResetToken = UUID()
-        centeredConstellationID = nil
-        lastManualPanAt = .distantPast
-        lastTickDate = nil
-        cameraContent = nil
-        capsuleScreenPoints = [:]
     }
 }

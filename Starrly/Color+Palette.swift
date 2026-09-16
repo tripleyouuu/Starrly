@@ -16,7 +16,7 @@ extension Color {
         self.init(red: r, green: g, blue: b)
     }
 
-    static let starrlyBackground = Color(hex: 0x011018)
+    static let starrlyBackground = Color(hex: 0x010318)
     static let starrlyBlue = Color(hex: 0x3453B2)
     static let starrlyOffWhite = Color(hex: 0xF2F2F3)
 }

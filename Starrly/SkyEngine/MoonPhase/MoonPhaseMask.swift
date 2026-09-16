@@ -45,6 +45,7 @@ struct MoonPhaseMask: View {
 
             context.fill(path, with: .color(Color.starrlyBackground))
         }
+        .blur(radius: 4)
     }
 
     private func angleForPhase(_ phase: MoonPhase) -> Double {

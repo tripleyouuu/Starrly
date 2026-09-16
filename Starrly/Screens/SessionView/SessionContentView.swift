@@ -10,6 +10,7 @@ import SwiftUI
 import PhotosUI
 import SwiftData
 import UniformTypeIdentifiers
+import TipKit
 
 struct SessionContentView: View {
     @Bindable var session: Session
@@ -23,6 +24,9 @@ struct SessionContentView: View {
         ZStack {
             AmbientSkyView(constellations: allConstellations, isBlurred: true)
                 .ignoresSafeArea()
+
+            GeometryReader { geometry in
+                let carouselHeight = max(160, min(360, geometry.size.height * 0.4))
 
             VStack(spacing: 32) {
                 HStack {
@@ -39,6 +43,7 @@ struct SessionContentView: View {
                     Spacer()
 
                     SessionTitleField(title: $session.title)
+                        .popoverTip(SessionTitleTip(), arrowEdge: .bottom)
 
                     Spacer()
 
@@ -71,7 +76,7 @@ struct SessionContentView: View {
                 }
 
                 if !session.mediaPaths.isEmpty {
-                    MediaCarousel(filenames: session.mediaPaths) { filename in
+                    MediaCarousel(filenames: session.mediaPaths, height: carouselHeight) { filename in
                         session.mediaPaths.removeAll { $0 == filename }
                         MediaStorage.delete(filename)
                     }
@@ -86,6 +91,7 @@ struct SessionContentView: View {
                     }
             }
             .padding(40)
+            }
         }
         .onChange(of: photosPickerItems) { _, newItems in
             handlePick(newItems)
@@ -107,7 +113,7 @@ struct SessionContentView: View {
                         defer { pendingMediaCount -= 1 }
                         guard let url, let data = try? Data(contentsOf: url) else { return }
                         let fileExtension = url.pathExtension.isEmpty ? "dat" : url.pathExtension
-                        addMedia(data: data, fileExtension: fileExtension)
+                        await addMedia(data: data, fileExtension: fileExtension)
                     }
                 }
             } else if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
@@ -115,7 +121,7 @@ struct SessionContentView: View {
                     Task { @MainActor in
                         defer { pendingMediaCount -= 1 }
                         guard let data else { return }
-                        addMedia(data: data, fileExtension: "mov")
+                        await addMedia(data: data, fileExtension: "mov")
                     }
                 }
             } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
@@ -123,7 +129,7 @@ struct SessionContentView: View {
                     Task { @MainActor in
                         defer { pendingMediaCount -= 1 }
                         guard let data else { return }
-                        addMedia(data: data, fileExtension: "png")
+                        await addMedia(data: data, fileExtension: "png")
                     }
                 }
             } else {
@@ -132,8 +138,9 @@ struct SessionContentView: View {
         }
     }
 
-    private func addMedia(data: Data, fileExtension: String) {
-        if let filename = MediaStorage.save(data, fileExtension: fileExtension) {
+    private func addMedia(data: Data, fileExtension: String) async {
+        let (finalData, finalExtension) = await MediaCompressor.process(data, fileExtension: fileExtension)
+        if let filename = MediaStorage.save(finalData, fileExtension: finalExtension) {
             session.mediaPaths.append(filename)
         }
     }
@@ -150,7 +157,8 @@ struct SessionContentView: View {
                             return (index, nil)
                         }
                         let fileExtension = item.supportedContentTypes.first?.preferredFilenameExtension ?? "dat"
-                        return (index, MediaStorage.save(data, fileExtension: fileExtension))
+                        let (finalData, finalExtension) = await MediaCompressor.process(data, fileExtension: fileExtension)
+                        return (index, MediaStorage.save(finalData, fileExtension: finalExtension))
                     }
                 }
                 var results: [(Int, String)] = []

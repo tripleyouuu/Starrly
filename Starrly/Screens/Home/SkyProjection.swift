@@ -25,14 +25,15 @@ enum SkyProjection {
         constellationCentroid: SkyPosition,
         localOrigin: CGPoint = .zero,
         radius: Double,
-        spreadScale: Double = 0.05
+        spreadScale: Double = 0.05,
+        pitchBand: ClosedRange<Double> = ExploreLayoutEngine.minPitch...ExploreLayoutEngine.maxPitch
     ) -> SIMD3<Float> {
         let localX = star.localPosition.x - localOrigin.x
         let localY = star.localPosition.y - localOrigin.y
         let pitch = constellationCentroid.pitch + localY * spreadScale
         let position = SkyPosition(
             yaw: constellationCentroid.yaw + localX * spreadScale,
-            pitch: min(max(pitch, ExploreLayoutEngine.minPitch), ExploreLayoutEngine.maxPitch)
+            pitch: min(max(pitch, pitchBand.lowerBound), pitchBand.upperBound)
         )
         return worldPosition(for: position, radius: radius)
     }

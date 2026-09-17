@@ -26,7 +26,7 @@ struct RecentlyExploredPanel: View {
                 } label: {
                     HStack(spacing: 24) {
                         StarView(type: star.type, color: star.color)
-                            .frame(width: 44, height: 44)
+                            .frame(width: 32, height: 32)
 
                         VStack(alignment: .leading, spacing: 6) {
                             Text(star.name)

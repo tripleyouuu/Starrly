@@ -34,7 +34,7 @@ struct StarView: View {
     }
 
     private func layerScale(for layer: String) -> CGFloat {
-        let base = StarAsset.relativeScale(for: layer)
+        let base = StarAsset.relativeScale(for: layer) * StarAsset.sizeMultiplier(for: type)
         if StarMotionSpec.layerShrinks(type: type, layer: layer) {
             return base * haloScale
         }

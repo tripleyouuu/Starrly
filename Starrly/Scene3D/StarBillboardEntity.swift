@@ -15,7 +15,7 @@ enum StarBillboardEntity {
         root.name = "star:\(star.id.uuidString)"
         root.components.set(BillboardComponent())
 
-        let size = Float(20 * sizeScale)
+        let size = Float(8 * sizeScale * StarAsset.sizeMultiplier(for: star.type))
         var rotationPivots: [Entity] = []
         var scalingLayers: [(entity: ModelEntity, baseScale: Float, targetMultiplier: Float)] = []
 

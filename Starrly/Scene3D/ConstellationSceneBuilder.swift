@@ -41,10 +41,6 @@ enum ConstellationSceneBuilder {
                 starEntities.append(starEntity)
             }
 
-            // Lines are added to the scene before stars (not just positioned behind them) because
-            // RealityKit orders overlapping transparent/blended geometry by submission order as
-            // well as depth — adding stars second ensures they always draw on top of the lines
-            // passing through them.
             let orderedStars = ConstellationPathBuilder.orderedConnectedStars(from: constellation.stars)
             for (previous, current) in zip(orderedStars, orderedStars.dropFirst()) {
                 guard let start = starPositions[previous.id], let end = starPositions[current.id] else { continue }

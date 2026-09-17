@@ -83,7 +83,7 @@ struct OrbitMapView: View {
                         }
 
                         StarView(type: star.type, color: star.color)
-                            .frame(width: 64, height: 64)
+                            .frame(width: 24, height: 24)
                             .position(center)
 
                         ForEach(Array(orderedSessions.enumerated()), id: \.element.id) { index, session in

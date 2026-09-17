@@ -121,8 +121,6 @@ struct ExploreView: View {
         guard let placement = ExploreLayoutEngine.layout(for: constellations)[constellation.id] else { return }
         centeredConstellationID = constellation.id
         soundPlayer.playRandomReveal()
-        // SkyProjection places world objects using the opposite yaw sign convention
-        // from how SkyCameraRig actually orients the camera — negate to compensate.
         cameraRig.startAnimating(
             toYaw: -placement.position.yaw,
             pitch: placement.position.pitch,

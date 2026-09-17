@@ -25,4 +25,16 @@ enum StarAsset {
         default: 1
         }
     }
+
+    /// A gradual overall size increase as a star progresses through its lifecycle, so a neutron
+    /// star reads as visibly more grown than a proto star even before animation is factored in.
+    static func sizeMultiplier(for type: StarType) -> CGFloat {
+        switch type {
+        case .protoStar: 1.0
+        case .dwarf: 1.1
+        case .giant: 1.2
+        case .supernova: 1.3
+        case .neutronStar: 1.4
+        }
+    }
 }

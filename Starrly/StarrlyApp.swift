@@ -8,9 +8,21 @@
 import SwiftUI
 import SwiftData
 import TipKit
+import AppKit
+
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        DispatchQueue.main.async {
+            guard let window = NSApplication.shared.windows.first,
+                  !window.styleMask.contains(.fullScreen) else { return }
+            window.toggleFullScreen(nil)
+        }
+    }
+}
 
 @main
 struct StarrlyApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @State private var settings: AppSettings
     @State private var soundPlayer: SoundPlayer
 

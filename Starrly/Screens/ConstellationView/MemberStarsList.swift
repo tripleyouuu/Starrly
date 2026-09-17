@@ -35,7 +35,7 @@ struct MemberStarsList: View {
                                     StarView(type: star.type, color: star.color)
                                         .frame(width: 32, height: 32)
 
-                                    VStack(alignment: .leading, spacing: 6) {
+                                    VStack(alignment: .leading, spacing: 8) {
                                         Text(star.name)
                                             .font(.system(size: 21, weight: .semibold))
                                             .foregroundStyle(Color.starrlyOffWhite)

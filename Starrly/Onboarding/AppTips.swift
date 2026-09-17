@@ -12,7 +12,7 @@ private let tipTitleFont = Font.system(size: 21, weight: .semibold)
 private let tipMessageFont = Font.system(size: 19, weight: .regular)
 
 struct TelescopeTip: Tip {
-    var title: Text { Text("Welcome to Starrly!").font(tipTitleFont) }
+    var title: Text { Text("Hello, there!").font(tipTitleFont) }
     var message: Text? { Text("Use the telescope, or click here, to \"discover\" your first learning journey.").font(tipMessageFont) }
     var options: [Option] { [Tips.MaxDisplayCount(1)] }
 }

@@ -1,59 +1,32 @@
-//
-//  ContentView.swift
-//  Starrly
-//
-//  Created by Vitha Watson on 14/09/26.
-//
-
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @State private var appState = AppState()
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
-                    }
-                }
-                .onDelete(perform: deleteItems)
-            }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-            .toolbar {
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-        } detail: {
-            Text("Select an item")
-        }
-    }
+        ZStack {
+            Color.starrlyBackground
+                .ignoresSafeArea()
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            switch appState.route {
+            case .home:
+                HomeView()
+            case .discovery:
+                DiscoveryFlowView()
+            case .constellation(let id, let returnTo):
+                ConstellationView(constellationID: id, returnTo: returnTo)
+            case .star(let id, let returnTo):
+                StarDetailView(starID: id, returnTo: returnTo)
+            case .session(let id, let starReturnTo):
+                SessionView(sessionID: id, starReturnTo: starReturnTo)
+            case .explore:
+                ExploreView()
             }
         }
+        .environment(appState)
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }

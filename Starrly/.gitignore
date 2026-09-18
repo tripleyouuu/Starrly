@@ -1,0 +1,62 @@
+# ==========================================
+# Xcode & iOS Core
+# ==========================================
+# Ignore the build artifacts and cache directory
+
+DerivedData/
+build/
+
+# Ignore user-specific settings that cause merge conflicts
+
+userdata/
+xcshareddata/xcuserdata/
+xcuserdata/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+# Ignore diagnostics and crash logs
+
+*.xccheckout
+*.xcscmblueprint
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# ==========================================
+# Swift & SwiftData
+# ==========================================
+# Playgrounds and Preview artifacts
+
+timeline.xctimeline
+playground.xcworkspace
+
+# Swift Package Manager local caches (Keep Package.resolved if you want to lock versions)
+
+.build/
+.swiftpm/
+
+# Ignore SPM dependencies source
+Packages/
+
+# SwiftData / CoreData sqlite local test store overrides (if generated in your repo)
+
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# ==========================================
+# Operating System & IDE
+# ==========================================
+# macOS specific system clutter
+
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.fseventsd

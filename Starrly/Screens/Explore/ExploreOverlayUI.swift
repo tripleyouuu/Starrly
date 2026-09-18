@@ -20,10 +20,12 @@ struct ExploreOverlayUI: View {
 
                 Button(action: onDiscover) {
                     Image(systemName: "plus")
+                        .font(.system(size: 19, weight: .regular))
                         .foregroundStyle(Color.starrlyOffWhite)
+                        .frame(width: 48, height: 48)
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
-                .padding(10)
                 .glassEffect(.starrly.interactive(), in: .circle)
             }
 
